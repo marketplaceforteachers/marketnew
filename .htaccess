@@ -1,0 +1,27 @@
+# Deny direct access to files that should never be requested directly.
+<FilesMatch "^(config\.php)$">
+    Require all denied
+</FilesMatch>
+
+<IfModule mod_authz_core.c>
+    <Directory "includes">
+        Require all denied
+    </Directory>
+    <Directory "db">
+        Require all denied
+    </Directory>
+</IfModule>
+
+# Fallback for older Apache (mod_access_compat)
+<IfModule !mod_authz_core.c>
+    <Directory "includes">
+        Order deny,allow
+        Deny from all
+    </Directory>
+    <Directory "db">
+        Order deny,allow
+        Deny from all
+    </Directory>
+</IfModule>
+
+Options -Indexes

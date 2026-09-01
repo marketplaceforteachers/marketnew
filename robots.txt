@@ -1,0 +1,15 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /includes/
+Disallow: /cart.php
+Disallow: /checkout.php
+Disallow: /orders.php
+Disallow: /messages.php
+Disallow: /login.php
+Disallow: /post-listing.php
+Disallow: /seller-dashboard.php
+Disallow: /seller-verification.php
+Disallow: /install.php
+Disallow: /config.php
+
+Sitemap: /sitemap.php

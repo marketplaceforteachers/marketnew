@@ -1,0 +1,21 @@
+<?php
+// Copy this file to config.php and fill in your database credentials,
+// or just run install.php which writes config.php for you automatically.
+
+// Refuse to run if loaded directly over HTTP instead of via includes/db.php.
+if (!defined('MFT_APP')) {
+    http_response_code(403);
+    exit('Direct access not permitted.');
+}
+
+define('DB_HOST', 'localhost');
+define('DB_PORT', 3306);
+define('DB_NAME', 'marketplaceforteachers');
+define('DB_USER', 'root');
+define('DB_PASS', '');
+
+// A long random string used to sign nothing in particular right now, but kept
+// for future use (e.g. password reset tokens). Change this in production.
+define('APP_SECRET', 'change-me-to-a-random-string');
+
+define('APP_URL', 'http://localhost:8080');

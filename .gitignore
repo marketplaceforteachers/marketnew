@@ -1,0 +1,7 @@
+# Real credentials — install.php writes this from config.php.example; never commit it.
+config.php
+
+# OS/editor cruft
+.DS_Store
+Thumbs.db
+*.swp
