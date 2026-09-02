@@ -57,6 +57,7 @@ $pageUrl = 'https://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . ($_SERVER['REQU
             <p class="text-xs text-muted" style="padding:.4rem .9rem;"><?= e($me['email']) ?></p>
             <a href="/orders.php"><?= icon('package') ?> Your Orders</a>
             <a href="/messages.php"><?= icon('message') ?> Messages</a>
+            <a href="/account.php"><?= icon('lock') ?> My Account</a>
             <?php if ($me['role'] === 'teacher'): ?>
               <a href="/seller-dashboard.php"><?= icon('layout-grid') ?> Seller Dashboard</a>
               <a href="/seller-verification.php"><?= icon('badge-check') ?> Educator Verification</a>

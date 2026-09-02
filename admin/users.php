@@ -17,6 +17,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (post('action') === 'toggle_banned') {
         db()->prepare('UPDATE users SET is_banned = NOT is_banned WHERE id = ?')->execute([$id]);
         log_admin_action($me['id'], 'user.update', 'users', $id);
+    } elseif (post('action') === 'delete') {
+        if ($id === (int) $me['id']) {
+            flash('error', "You can't delete your own account.");
+        } else {
+            try {
+                db()->prepare('DELETE FROM users WHERE id = ?')->execute([$id]);
+                log_admin_action($me['id'], 'user.delete', 'users', $id);
+                flash('success', 'User deleted.');
+            } catch (PDOException $e) {
+                flash('error', 'Could not delete this user — they have existing orders, reviews, or other records tied to their account. Ban them instead to block access.');
+            }
+        }
     }
     redirect('/admin/users.php?q=' . urlencode(param('q')));
 }
@@ -36,7 +48,7 @@ require __DIR__ . '/../includes/admin_layout_header.php';
 
 <div class="table-wrap mt-4">
   <table>
-    <thead><tr><th>User</th><th>Role</th><th>Verified</th><th>Status</th></tr></thead>
+    <thead><tr><th>User</th><th>Role</th><th>Verified</th><th>Status</th><th></th></tr></thead>
     <tbody>
       <?php foreach ($users as $u): ?>
         <tr>
@@ -62,6 +74,14 @@ require __DIR__ . '/../includes/admin_layout_header.php';
             <form method="post"><?= csrf_field() ?><input type="hidden" name="action" value="toggle_banned"><input type="hidden" name="id" value="<?= $u['id'] ?>">
               <button type="submit" class="status-badge <?= $u['is_banned'] ? 'status-disputed' : 'status-inactive' ?>" style="border:none;cursor:pointer;"><?= $u['is_banned'] ? 'Banned' : 'Active' ?></button>
             </form>
+          </td>
+          <td style="text-align:right;">
+            <?php if ((int) $u['id'] !== (int) $me['id']): ?>
+              <form method="post" onsubmit="return confirm('Permanently delete this user and everything tied to them (listings, etc.)? This cannot be undone.')">
+                <?= csrf_field() ?><input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="<?= $u['id'] ?>">
+                <button type="submit" style="background:none;border:none;cursor:pointer;color:var(--slate-500);"><?= icon('trash') ?></button>
+              </form>
+            <?php endif; ?>
           </td>
         </tr>
       <?php endforeach; ?>

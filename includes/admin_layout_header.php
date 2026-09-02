@@ -51,6 +51,7 @@ $pageTitle = isset($page_title) ? $page_title . ' — Admin' : 'Admin';
     </nav>
     <div style="padding:1rem;border-top:1px solid var(--slate-800);font-size:.75rem;color:var(--slate-400);">
       Signed in as <strong style="color:#fff;"><?= e($me['name']) ?></strong>
+      <div class="mt-2"><a href="/account.php" class="link text-xs">Change password</a></div>
       <form action="/logout.php" method="post" class="mt-2"><?= csrf_field() ?><button class="link text-xs" style="background:none;border:none;color:#f87171;cursor:pointer;">Sign out</button></form>
     </div>
   </aside>
