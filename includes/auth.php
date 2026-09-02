@@ -127,20 +127,26 @@ function consume_password_reset(string $token, string $newPassword): void
     db()->prepare('UPDATE password_resets SET used_at = NOW() WHERE id = ?')->execute([$reset['id']]);
 }
 
-function register_user(string $name, string $email, string $password, string $role, array $profile = []): ?array
+function register_user(string $firstName, string $lastName, string $email, string $password, string $role, array $profile = []): ?array
 {
     $stmt = db()->prepare('SELECT id FROM users WHERE email = ?');
     $stmt->execute([$email]);
     if ($stmt->fetch()) {
         return null;
     }
+    $name = trim("$firstName $lastName");
     $hash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
     $stmt = db()->prepare(
-        'INSERT INTO users (name, email, password_hash, role, school_name, district, state) VALUES (?, ?, ?, ?, ?, ?, ?)'
+        'INSERT INTO users (name, first_name, last_name, email, password_hash, role, account_type, phone, zip_code, school_name, school_email, district, state)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     );
     $stmt->execute([
-        $name, $email, $hash, $role,
+        $name, $firstName, $lastName, $email, $hash, $role,
+        $profile['account_type'] ?? null,
+        $profile['phone'] ?? null,
+        $profile['zip_code'] ?? null,
         $profile['school_name'] ?? null,
+        $profile['school_email'] ?? null,
         $profile['district'] ?? null,
         $profile['state'] ?? null,
     ]);

@@ -34,22 +34,24 @@ $reviewsStmt = db()->prepare(
 $reviewsStmt->execute([$id]);
 $reviews = $reviewsStmt->fetchAll();
 
-$page_title = $seller['name'] . "'s Store";
-$page_description = trim($seller['bio'] ?? '') ?: ($seller['name'] . ' sells classroom supplies on ' . get_setting('branding')['siteName'] . '.');
+$displayName = $seller['store_name'] ?: $seller['name'];
+$page_title = $displayName . "'s Store";
+$page_description = trim($seller['bio'] ?? '') ?: ($displayName . ' sells classroom supplies on ' . get_setting('branding')['siteName'] . '.');
 require __DIR__ . '/includes/layout_header.php';
 ?>
 <div class="container py-8">
   <div class="card card-pad flex gap-4" style="align-items:flex-start;flex-wrap:wrap;">
     <span class="avatar-btn" style="width:4rem;height:4rem;font-size:1.5rem;border-radius:999px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
-      <?= e(strtoupper(substr($seller['name'], 0, 2))) ?>
+      <?= e(strtoupper(substr($displayName, 0, 2))) ?>
     </span>
     <div style="flex:1;min-width:12rem;">
       <div class="flex items-center gap-2" style="flex-wrap:wrap;">
-        <h1 class="text-xl"><?= e($seller['name']) ?></h1>
+        <h1 class="text-xl"><?= e($displayName) ?></h1>
         <?php if ($seller['is_verified']): ?>
           <span class="flex items-center gap-1 text-xs" style="color:var(--emerald-600);font-weight:700;"><?= icon('shield') ?> Verified Teacher</span>
         <?php endif; ?>
       </div>
+      <?php if ($seller['store_name']): ?><p class="text-xs text-muted">by <?= e($seller['name']) ?></p><?php endif; ?>
       <p class="text-sm text-muted mt-1">
         <?php if ($seller['school_name']): ?><?= e($seller['school_name']) ?><?php endif; ?>
         <?php if ($seller['district']): ?> &middot; <?= e($seller['district']) ?><?php endif; ?>

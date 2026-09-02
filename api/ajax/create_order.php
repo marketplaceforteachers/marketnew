@@ -9,7 +9,12 @@ if (!$me) {
 
 $input = json_decode(file_get_contents('php://input'), true);
 $items = $input['items'] ?? [];
+$shippingName = trim($input['shippingName'] ?? '');
+$shippingPhone = trim($input['shippingPhone'] ?? '');
 $shippingAddress = trim($input['shippingAddress'] ?? '');
+$shippingCity = trim($input['shippingCity'] ?? '');
+$shippingState = trim($input['shippingState'] ?? '');
+$shippingZip = trim($input['shippingZip'] ?? '');
 $paymentGateway = $input['paymentGateway'] ?? '';
 
 if (!$items || !in_array($paymentGateway, ['stripe', 'paypal', 'school_po'], true)) {
@@ -40,9 +45,9 @@ foreach ($items as $item) {
 $total = $subtotal + $shipping;
 
 db()->prepare(
-    "INSERT INTO orders (buyer_id, total_amount, shipping_amount, tax_amount, status, shipping_address, payment_gateway)
-     VALUES (?, ?, ?, 0, 'pending', ?, ?)"
-)->execute([$me['id'], $total, $shipping, $shippingAddress, $paymentGateway]);
+    "INSERT INTO orders (buyer_id, total_amount, shipping_amount, tax_amount, status, shipping_name, shipping_phone, shipping_address, shipping_city, shipping_state, shipping_zip, payment_gateway)
+     VALUES (?, ?, ?, 0, 'pending', ?, ?, ?, ?, ?, ?, ?)"
+)->execute([$me['id'], $total, $shipping, $shippingName ?: null, $shippingPhone ?: null, $shippingAddress, $shippingCity ?: null, $shippingState ?: null, $shippingZip ?: null, $paymentGateway]);
 $orderId = (int) db()->lastInsertId();
 
 foreach ($items as $item) {

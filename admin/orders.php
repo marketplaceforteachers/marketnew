@@ -44,12 +44,20 @@ require __DIR__ . '/../includes/admin_layout_header.php';
 <p class="text-sm text-muted mt-1">Override statuses or issue refunds.</p>
 <div class="table-wrap mt-4">
   <table>
-    <thead><tr><th>Order</th><th>Buyer</th><th>Total</th><th>Gateway</th><th>Status</th><th></th></tr></thead>
+    <thead><tr><th>Order</th><th>Buyer</th><th>Ship To</th><th>Total</th><th>Gateway</th><th>Status</th><th></th></tr></thead>
     <tbody>
       <?php foreach ($orders as $o): ?>
         <tr>
           <td class="font-bold">#<?= $o['id'] ?></td>
           <td class="text-muted"><?= e($o['buyer_name']) ?><br><span class="text-xs"><?= e($o['buyer_email']) ?></span></td>
+          <td class="text-muted text-xs">
+            <?php if ($o['shipping_address'] === 'Local pickup'): ?>
+              Local pickup
+            <?php elseif ($o['shipping_address']): ?>
+              <?= e($o['shipping_name'] ?? '') ?><?php if ($o['shipping_phone']): ?><br><?= e($o['shipping_phone']) ?><?php endif; ?><br>
+              <?= e($o['shipping_address']) ?><?php if ($o['shipping_city']): ?>, <?= e($o['shipping_city']) ?><?php endif; ?> <?= e($o['shipping_state'] ?? '') ?> <?= e($o['shipping_zip'] ?? '') ?>
+            <?php endif; ?>
+          </td>
           <td class="text-muted"><?= money((float) $o['total_amount']) ?></td>
           <td class="text-muted"><?= e($o['payment_gateway']) ?></td>
           <td>

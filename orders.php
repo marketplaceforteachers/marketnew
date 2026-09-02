@@ -60,6 +60,13 @@ require __DIR__ . '/includes/layout_header.php';
             <span class="status-badge status-<?= e($o['status']) ?>"><?= e($o['status']) ?></span>
           </div>
         </div>
+        <?php if ($o['shipping_address'] && $o['shipping_address'] !== 'Local pickup'): ?>
+          <p class="text-xs text-muted mt-2"><?= icon('map-pin') ?>
+            <?= e($o['shipping_name'] ?? '') ?><?= $o['shipping_name'] ? ' — ' : '' ?><?= e($o['shipping_address']) ?><?php if ($o['shipping_city']): ?>, <?= e($o['shipping_city']) ?><?php endif; ?><?php if ($o['shipping_state']): ?>, <?= e($o['shipping_state']) ?><?php endif; ?> <?= e($o['shipping_zip'] ?? '') ?>
+          </p>
+        <?php elseif ($o['shipping_address'] === 'Local pickup'): ?>
+          <p class="text-xs text-muted mt-2"><?= icon('map-pin') ?> Local pickup</p>
+        <?php endif; ?>
 
         <?php if (in_array($o['status'], $reviewable, true) && !$o['already_reviewed'] && $o['sellers']): ?>
           <form method="post" class="mt-3" style="border-top:1px solid var(--slate-100);padding-top:.75rem;">

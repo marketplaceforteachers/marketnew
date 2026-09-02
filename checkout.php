@@ -32,7 +32,16 @@ require __DIR__ . '/includes/layout_header.php';
         <button type="button" id="ship-mode-carrier" class="btn btn-outline w-full">Ship to address</button>
         <button type="button" id="ship-mode-pickup" class="btn btn-outline w-full">Local school pickup</button>
       </div>
-      <div class="field mt-3" id="address-field"><label>Shipping address</label><textarea id="f-address" rows="3"></textarea></div>
+      <div id="address-field">
+        <div class="field mt-3"><label>Recipient name</label><input type="text" id="f-ship-name" value="<?= e($me['name']) ?>"></div>
+        <div class="field"><label>Phone</label><input type="tel" id="f-ship-phone" value="<?= e($me['phone'] ?? '') ?>"></div>
+        <div class="field"><label>Street address</label><textarea id="f-address" rows="2"><?= e($me['address_line1'] ?? '') ?></textarea></div>
+        <div class="grid grid-3">
+          <div class="field"><label>City</label><input type="text" id="f-ship-city" value="<?= e($me['city'] ?? '') ?>"></div>
+          <div class="field"><label>State</label><input type="text" id="f-ship-state" maxlength="2" style="text-transform:uppercase;" value="<?= e($me['state'] ?? '') ?>"></div>
+          <div class="field"><label>ZIP</label><input type="text" id="f-ship-zip" value="<?= e($me['zip_code'] ?? '') ?>"></div>
+        </div>
+      </div>
     </div>
 
     <div data-step="2" class="hidden">
@@ -128,10 +137,19 @@ function renderPaymentOptions() {
 async function ensureOrder() {
   if (orderId) return orderId;
   const items = cartGet().map((i) => ({ listingId: i.listing.id, quantity: i.quantity }));
-  const address = pickup ? 'Local pickup' : document.getElementById('f-address').value;
   const notes = document.getElementById('f-notes').value;
-  const shippingAddress = notes ? `${address} — Notes: ${notes}` : address;
-  const order = await api('/api/ajax/create_order.php', { items, shippingAddress, paymentGateway: gateway });
+  let address = pickup ? 'Local pickup' : document.getElementById('f-address').value;
+  if (notes) address += ` — Notes: ${notes}`;
+  const order = await api('/api/ajax/create_order.php', {
+    items,
+    paymentGateway: gateway,
+    shippingName: pickup ? document.getElementById('f-name').value : document.getElementById('f-ship-name').value,
+    shippingPhone: pickup ? '' : document.getElementById('f-ship-phone').value,
+    shippingAddress: address,
+    shippingCity: pickup ? '' : document.getElementById('f-ship-city').value,
+    shippingState: pickup ? '' : document.getElementById('f-ship-state').value,
+    shippingZip: pickup ? '' : document.getElementById('f-ship-zip').value,
+  });
   orderId = order.id;
   return orderId;
 }

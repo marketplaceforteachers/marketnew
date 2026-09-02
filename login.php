@@ -16,17 +16,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = post('password');
 
     if ($mode === 'register') {
-        $name = trim(post('name'));
+        $firstName = trim(post('first_name'));
+        $lastName = trim(post('last_name'));
         $role = in_array(post('role'), ['teacher', 'buyer'], true) ? post('role') : 'buyer';
+        $accountTypeOptions = $role === 'teacher'
+            ? ['teacher', 'educator', 'school']
+            : ['parent', 'donor', 'other'];
         $profile = [
+            'account_type' => in_array(post('account_type'), $accountTypeOptions, true) ? post('account_type') : null,
+            'phone' => trim(post('phone')) ?: null,
+            'zip_code' => trim(post('zip_code')) ?: null,
             'school_name' => trim(post('school_name')) ?: null,
+            'school_email' => trim(post('school_email')) ?: null,
             'district' => trim(post('district')) ?: null,
             'state' => trim(post('state')) ?: null,
         ];
-        if (strlen($name) < 2 || strlen($password) < 8) {
-            $error = 'Name must be at least 2 characters and password at least 8 characters.';
+        if (strlen($firstName) < 1 || strlen($lastName) < 1) {
+            $error = 'First and last name are required.';
+        } elseif (strlen($password) < 8) {
+            $error = 'Password must be at least 8 characters.';
+        } elseif (!trim(post('phone'))) {
+            $error = 'Phone number is required.';
+        } elseif (!trim(post('zip_code'))) {
+            $error = 'ZIP/postal code is required.';
         } else {
-            $user = register_user($name, $email, $password, $role, $profile);
+            $user = register_user($firstName, $lastName, $email, $password, $role, $profile);
             if (!$user) {
                 $error = 'An account with that email already exists.';
                 $mode = 'register';
@@ -67,20 +81,48 @@ require __DIR__ . '/includes/layout_header.php';
       <input type="hidden" name="mode" value="<?= e($mode) ?>">
       <input type="hidden" name="redirect_to" value="<?= e($redirectTo) ?>">
       <?php if ($mode === 'register'): ?>
-        <div class="field"><label>Full Name</label><input type="text" name="name" required></div>
+        <div class="grid grid-2">
+          <div class="field"><label>First Name</label><input type="text" name="first_name" required></div>
+          <div class="field"><label>Last Name</label><input type="text" name="last_name" required></div>
+        </div>
       <?php endif; ?>
       <div class="field"><label>Email</label><input type="email" name="email" required></div>
       <div class="field"><label>Password</label><input type="password" name="password" required minlength="8"></div>
       <?php if ($mode === 'register'): ?>
+        <div class="grid grid-2">
+          <div class="field"><label>Phone Number</label><input type="tel" name="phone" required></div>
+          <div class="field"><label>ZIP / Postal Code</label><input type="text" name="zip_code" required></div>
+        </div>
         <div class="field">
           <label>I am a…</label>
-          <select name="role" id="role-select" onchange="document.getElementById('teacher-fields').classList.toggle('hidden', this.value !== 'teacher')">
+          <select name="role" id="role-select" onchange="
+            document.getElementById('teacher-fields').classList.toggle('hidden', this.value !== 'teacher');
+            document.getElementById('account-type-teacher').classList.toggle('hidden', this.value !== 'teacher');
+            document.getElementById('account-type-buyer').classList.toggle('hidden', this.value === 'teacher');
+          ">
             <option value="teacher">Teacher (selling &amp; buying)</option>
             <option value="buyer">Buyer / Parent / Donor</option>
           </select>
         </div>
+        <div class="field" id="account-type-teacher">
+          <label>Account Type</label>
+          <select name="account_type">
+            <option value="teacher">Teacher</option>
+            <option value="educator">Educator (non-classroom)</option>
+            <option value="school">School / Institution</option>
+          </select>
+        </div>
+        <div class="field hidden" id="account-type-buyer">
+          <label>Account Type</label>
+          <select name="account_type">
+            <option value="parent">Parent</option>
+            <option value="donor">Donor</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
         <div id="teacher-fields">
-          <div class="field"><label>School Name</label><input type="text" name="school_name" placeholder="e.g. Pennsylvania Elementary"></div>
+          <div class="field"><label>School or District Name</label><input type="text" name="school_name" placeholder="e.g. Pennsylvania Elementary"></div>
+          <div class="field"><label>School/District Email <span class="text-muted" style="text-transform:none;font-weight:400;">(for verification, optional)</span></label><input type="email" name="school_email" placeholder="you@yourschool.edu"></div>
           <div class="grid grid-2">
             <div class="field"><label>District</label><input type="text" name="district" placeholder="e.g. Oklahoma City Public Schools"></div>
             <div class="field"><label>State</label><input type="text" name="state" maxlength="2" placeholder="OK" style="text-transform:uppercase;"></div>

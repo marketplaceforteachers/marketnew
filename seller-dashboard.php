@@ -14,8 +14,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && post('action') === 'toggle_active')
 } elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && post('action') === 'update_bio') {
     verify_csrf();
     $bio = trim(post('bio'));
-    db()->prepare('UPDATE users SET bio = ? WHERE id = ?')->execute([$bio !== '' ? $bio : null, $me['id']]);
+    $storeName = trim(post('store_name'));
+    db()->prepare('UPDATE users SET bio = ?, store_name = ? WHERE id = ?')
+        ->execute([$bio !== '' ? $bio : null, $storeName !== '' ? $storeName : null, $me['id']]);
     flash('success', 'Store profile updated.');
+    redirect('/seller-dashboard.php');
+} elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && post('action') === 'update_address') {
+    verify_csrf();
+    db()->prepare('UPDATE users SET address_line1 = ?, city = ?, state = ?, zip_code = ?, phone = ? WHERE id = ?')->execute([
+        trim(post('address_line1')) ?: null,
+        trim(post('city')) ?: null,
+        trim(post('state')) ?: null,
+        trim(post('zip_code')) ?: null,
+        trim(post('phone')) ?: null,
+        $me['id'],
+    ]);
+    flash('success', 'Return/shipping address updated.');
     redirect('/seller-dashboard.php');
 }
 
@@ -40,11 +54,30 @@ require __DIR__ . '/includes/layout_header.php';
 
   <div class="card card-pad mt-4">
     <h2 class="text-lg flex items-center gap-2"><?= icon('user-group') ?> Store Profile</h2>
-    <p class="text-sm text-muted mt-1">This bio shows on your public store page for buyers to see.</p>
+    <p class="text-sm text-muted mt-1">Your store name and bio show on your public store page for buyers to see.</p>
     <form method="post" class="mt-2">
       <?= csrf_field() ?><input type="hidden" name="action" value="update_bio">
-      <textarea name="bio" rows="3" placeholder="Tell buyers a bit about you and what you sell..."><?= e($me['bio'] ?? '') ?></textarea>
-      <button class="btn btn-primary mt-2">Save Bio</button>
+      <div class="field"><label>Store Name</label><input type="text" name="store_name" placeholder="e.g. Mrs. Doe's Classroom Finds" value="<?= e($me['store_name'] ?? '') ?>"></div>
+      <div class="field"><label>Bio</label><textarea name="bio" rows="3" placeholder="Tell buyers a bit about you and what you sell..."><?= e($me['bio'] ?? '') ?></textarea></div>
+      <button class="btn btn-primary mt-2">Save Store Profile</button>
+    </form>
+  </div>
+
+  <div class="card card-pad mt-4">
+    <h2 class="text-lg flex items-center gap-2"><?= icon('map-pin') ?> Return / Shipping Address</h2>
+    <p class="text-sm text-muted mt-1">Used for return labels and buyer support — never shown publicly.</p>
+    <form method="post" class="mt-2">
+      <?= csrf_field() ?><input type="hidden" name="action" value="update_address">
+      <div class="grid grid-2">
+        <div class="field"><label>Phone</label><input type="tel" name="phone" value="<?= e($me['phone'] ?? '') ?>"></div>
+        <div class="field"><label>Address</label><input type="text" name="address_line1" value="<?= e($me['address_line1'] ?? '') ?>"></div>
+      </div>
+      <div class="grid grid-3">
+        <div class="field"><label>City</label><input type="text" name="city" value="<?= e($me['city'] ?? '') ?>"></div>
+        <div class="field"><label>State</label><input type="text" name="state" maxlength="2" style="text-transform:uppercase;" value="<?= e($me['state'] ?? '') ?>"></div>
+        <div class="field"><label>ZIP</label><input type="text" name="zip_code" value="<?= e($me['zip_code'] ?? '') ?>"></div>
+      </div>
+      <button class="btn btn-primary mt-2">Save Address</button>
     </form>
   </div>
 
