@@ -103,6 +103,11 @@ function stripe_verify_webhook_signature(string $payload, string $sigHeader, str
     if (!$timestamp || !$signatures) {
         return false;
     }
+    // Reject anything older than 5 minutes so a captured request/signature can't be replayed
+    // indefinitely (defense in depth — order finalization is also idempotent on its own).
+    if (abs(time() - (int) $timestamp) > 300) {
+        return false;
+    }
     $signedPayload = $timestamp . '.' . $payload;
     $expected = hash_hmac('sha256', $signedPayload, $secret);
     foreach ($signatures as $sig) {

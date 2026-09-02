@@ -74,7 +74,60 @@ function attempt_login(string $email, string $password): ?array
     return $user;
 }
 
-function register_user(string $name, string $email, string $password, string $role): ?array
+/** Basic brute-force throttle: max 10 failed attempts per IP per 15-minute rolling window. */
+function is_login_rate_limited(string $ip): bool
+{
+    $stmt = db()->prepare('SELECT COUNT(*) AS c FROM login_attempts WHERE ip_address = ? AND attempted_at > DATE_SUB(NOW(), INTERVAL 15 MINUTE)');
+    $stmt->execute([$ip]);
+    return (int) $stmt->fetch()['c'] >= 10;
+}
+
+function record_login_attempt(string $ip): void
+{
+    db()->prepare('INSERT INTO login_attempts (ip_address) VALUES (?)')->execute([$ip]);
+}
+
+/** Issues a password reset token (returns the raw token to email; only its hash is stored). */
+function create_password_reset(int $userId): string
+{
+    $token = bin2hex(random_bytes(32));
+    $hash = hash('sha256', $token);
+    db()->prepare('INSERT INTO password_resets (user_id, token_hash, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 1 HOUR))')
+        ->execute([$userId, $hash]);
+    return $token;
+}
+
+/** Returns the user row for a valid, unexpired, unused reset token, or null. */
+function get_user_for_reset_token(string $token): ?array
+{
+    $hash = hash('sha256', $token);
+    $stmt = db()->prepare(
+        "SELECT u.* FROM password_resets pr JOIN users u ON u.id = pr.user_id
+         WHERE pr.token_hash = ? AND pr.used_at IS NULL AND pr.expires_at > NOW() LIMIT 1"
+    );
+    $stmt->execute([$hash]);
+    $user = $stmt->fetch();
+    return $user ?: null;
+}
+
+function consume_password_reset(string $token, string $newPassword): void
+{
+    $hash = hash('sha256', $token);
+    $stmt = db()->prepare(
+        "SELECT pr.id, pr.user_id FROM password_resets pr
+         WHERE pr.token_hash = ? AND pr.used_at IS NULL AND pr.expires_at > NOW() LIMIT 1"
+    );
+    $stmt->execute([$hash]);
+    $reset = $stmt->fetch();
+    if (!$reset) {
+        return;
+    }
+    $passwordHash = password_hash($newPassword, PASSWORD_BCRYPT, ['cost' => 12]);
+    db()->prepare('UPDATE users SET password_hash = ? WHERE id = ?')->execute([$passwordHash, $reset['user_id']]);
+    db()->prepare('UPDATE password_resets SET used_at = NOW() WHERE id = ?')->execute([$reset['id']]);
+}
+
+function register_user(string $name, string $email, string $password, string $role, array $profile = []): ?array
 {
     $stmt = db()->prepare('SELECT id FROM users WHERE email = ?');
     $stmt->execute([$email]);
@@ -83,9 +136,14 @@ function register_user(string $name, string $email, string $password, string $ro
     }
     $hash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
     $stmt = db()->prepare(
-        'INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)'
+        'INSERT INTO users (name, email, password_hash, role, school_name, district, state) VALUES (?, ?, ?, ?, ?, ?, ?)'
     );
-    $stmt->execute([$name, $email, $hash, $role]);
+    $stmt->execute([
+        $name, $email, $hash, $role,
+        $profile['school_name'] ?? null,
+        $profile['district'] ?? null,
+        $profile['state'] ?? null,
+    ]);
     $userId = (int) db()->lastInsertId();
     login_user($userId);
 

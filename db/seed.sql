@@ -36,6 +36,7 @@ INSERT INTO email_templates (template_key, subject, html_body) VALUES
   ('verification_approved', 'You''re verified!', '<p>Hi {{teacher_name}}, your educator verification was approved.</p>'),
   ('verification_rejected', 'Verification update', '<p>Hi {{teacher_name}}, we couldn''t verify your account: {{reason}}</p>'),
   ('dispute_resolution', 'Dispute #{{dispute_id}} resolved', '<p>Resolution: {{resolution}}</p>'),
+  ('password_reset', 'Reset your {{site_name}} password', '<p>Hi {{name}}, click the link below to set a new password. This link expires in 1 hour.</p><p><a href="{{reset_url}}">{{reset_url}}</a></p><p>If you didn''t request this, you can safely ignore this email.</p>'),
   ('donation_receipt', 'Thank you for your donation!', '<p>Hi {{donor_name}}, thank you for your ${{amount}} donation.</p>'),
   ('drip_teacher_getting_started', 'Ready to post your first listing, {{teacher_name}}?', '<p>Hi {{teacher_name}}, listing your first item on {{site_name}} takes less than 5 minutes and it''s always free to post. <a href="https://{{site_name}}/post-listing.php">Post a listing</a></p>'),
   ('drip_teacher_checkin', 'A few tips to help your listings sell', '<p>Hi {{teacher_name}}, listings with clear photos and a fair price sell fastest. Consider adding a photo or adjusting your price if something has been sitting a while.</p>'),

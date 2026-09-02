@@ -18,10 +18,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($mode === 'register') {
         $name = trim(post('name'));
         $role = in_array(post('role'), ['teacher', 'buyer'], true) ? post('role') : 'buyer';
+        $profile = [
+            'school_name' => trim(post('school_name')) ?: null,
+            'district' => trim(post('district')) ?: null,
+            'state' => trim(post('state')) ?: null,
+        ];
         if (strlen($name) < 2 || strlen($password) < 8) {
             $error = 'Name must be at least 2 characters and password at least 8 characters.';
         } else {
-            $user = register_user($name, $email, $password, $role);
+            $user = register_user($name, $email, $password, $role, $profile);
             if (!$user) {
                 $error = 'An account with that email already exists.';
                 $mode = 'register';
@@ -31,11 +36,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     } else {
-        $user = attempt_login($email, $password);
-        if (!$user) {
-            $error = 'Invalid email or password.';
+        $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        if (is_login_rate_limited($ip)) {
+            $error = 'Too many login attempts. Please wait 15 minutes and try again.';
         } else {
-            redirect(post('redirect_to', '/index.php'));
+            $user = attempt_login($email, $password);
+            if (!$user) {
+                record_login_attempt($ip);
+                $error = 'Invalid email or password.';
+            } else {
+                redirect(post('redirect_to', '/index.php'));
+            }
         }
     }
 }
@@ -63,16 +74,23 @@ require __DIR__ . '/includes/layout_header.php';
       <?php if ($mode === 'register'): ?>
         <div class="field">
           <label>I am a…</label>
-          <select name="role">
+          <select name="role" id="role-select" onchange="document.getElementById('teacher-fields').classList.toggle('hidden', this.value !== 'teacher')">
             <option value="teacher">Teacher (selling &amp; buying)</option>
             <option value="buyer">Buyer / Parent / Donor</option>
           </select>
+        </div>
+        <div id="teacher-fields">
+          <div class="field"><label>School Name</label><input type="text" name="school_name" placeholder="e.g. Pennsylvania Elementary"></div>
+          <div class="grid grid-2">
+            <div class="field"><label>District</label><input type="text" name="district" placeholder="e.g. Oklahoma City Public Schools"></div>
+            <div class="field"><label>State</label><input type="text" name="state" maxlength="2" placeholder="OK" style="text-transform:uppercase;"></div>
+          </div>
         </div>
       <?php endif; ?>
       <?php if ($error): ?><div class="flash flash-error"><?= e($error) ?></div><?php endif; ?>
       <button class="btn btn-primary w-full mt-2" style="justify-content:center;"><?= $mode === 'register' ? 'Create Account' : 'Log In' ?></button>
     </form>
-    <p class="text-xs text-muted text-center mt-3">Demo login: teacher@example.com / Password123!</p>
+    <p class="text-xs text-center mt-3"><a href="/forgot-password.php" class="link">Forgot your password?</a></p>
     <a href="/index.php" class="link text-xs" style="display:block;text-align:center;margin-top:.5rem;">&larr; Back to marketplace</a>
   </div>
 </div>

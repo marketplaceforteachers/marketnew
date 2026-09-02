@@ -24,6 +24,25 @@ CREATE TABLE IF NOT EXISTS users (
   KEY idx_users_role (role)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- 1b. login_attempts (brute-force throttling) & password_resets
+CREATE TABLE IF NOT EXISTS login_attempts (
+  id              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  ip_address      VARCHAR(45)       NOT NULL,
+  attempted_at    TIMESTAMP         NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY idx_login_attempts_ip_time (ip_address, attempted_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS password_resets (
+  id              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  user_id         BIGINT UNSIGNED   NOT NULL,
+  token_hash      CHAR(64)          NOT NULL,
+  expires_at      TIMESTAMP         NOT NULL,
+  used_at         TIMESTAMP         NULL,
+  created_at      TIMESTAMP         NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_password_resets_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  KEY idx_password_resets_token (token_hash)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- 2. teacher_verifications
 CREATE TABLE IF NOT EXISTS teacher_verifications (
   id              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

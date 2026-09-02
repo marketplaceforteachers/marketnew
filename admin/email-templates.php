@@ -10,6 +10,7 @@ const DEFAULT_TEMPLATES = [
     'verification_approved' => "You're verified!",
     'verification_rejected' => 'Verification update',
     'dispute_resolution' => 'Dispute #{{dispute_id}} resolved',
+    'password_reset' => 'Reset your {{site_name}} password',
     'donation_receipt' => 'Thank you for your donation!',
     'drip_teacher_getting_started' => 'Ready to post your first listing, {{teacher_name}}?',
     'drip_teacher_checkin' => 'A few tips to help your listings sell',
