@@ -244,3 +244,15 @@ function category_icon(?string $dbIcon): string
     ];
     return $map[$dbIcon ?? ''] ?? 'book';
 }
+
+const CATEGORY_ACCENT_TONES = ['royal', 'emerald', 'amber', 'violet', 'teal', 'red'];
+
+/** A stable color tone per category (by slug), so the same category always shows the same
+ * accent everywhere on the site — category cards, listing chips, etc. */
+function category_accent(?string $slug): string
+{
+    if (!$slug) {
+        return CATEGORY_ACCENT_TONES[0];
+    }
+    return CATEGORY_ACCENT_TONES[crc32($slug) % count(CATEGORY_ACCENT_TONES)];
+}

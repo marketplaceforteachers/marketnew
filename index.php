@@ -81,14 +81,25 @@ $listings = db()->query(
 </section>
 
 <?php if ($categories): ?>
+<?php
+$categoryLimit = 10;
+$shownCategories = array_slice($categories, 0, $categoryLimit);
+$moreCategoriesCount = max(0, count($categories) - $categoryLimit);
+?>
 <section class="section-band py-8">
   <div class="container">
-    <span class="section-eyebrow">Browse by subject</span>
-    <h2 class="text-xl mt-1">Shop by Category</h2>
+    <div class="flex justify-between items-center" style="flex-wrap:wrap;gap:.5rem;">
+      <div>
+        <span class="section-eyebrow">Browse by subject</span>
+        <h2 class="text-xl mt-1">Shop by Category</h2>
+      </div>
+      <?php if ($moreCategoriesCount > 0): ?>
+        <a href="/browse.php" class="link">View all categories &rarr;</a>
+      <?php endif; ?>
+    </div>
     <div class="category-grid mt-4">
-      <?php $catTones = ['cat-royal', 'cat-emerald', 'cat-amber', 'cat-violet', 'cat-teal', 'cat-red']; ?>
-      <?php foreach ($categories as $i => $c): ?>
-        <a href="/browse.php?category=<?= e($c['slug']) ?>" class="category-card <?= $catTones[$i % count($catTones)] ?>">
+      <?php foreach ($shownCategories as $c): ?>
+        <a href="/browse.php?category=<?= e($c['slug']) ?>" class="category-card cat-<?= category_accent($c['slug']) ?>">
           <span class="category-card-icon"><?= icon(category_icon($c['icon'])) ?></span>
           <span class="category-card-name"><?= e($c['name']) ?></span>
           <span class="category-card-count"><?= (int) $c['listing_count'] ?> listing<?= (int) $c['listing_count'] === 1 ? '' : 's' ?></span>

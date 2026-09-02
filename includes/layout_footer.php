@@ -54,7 +54,6 @@ $footerCategories = db()->query('SELECT name, slug FROM categories ORDER BY name
           <?php foreach ($footer['trustLinks'] as $l): ?>
             <a href="<?= e($l['href']) ?>"><?= e($l['label']) ?></a>
           <?php endforeach; ?>
-          <a href="/admin/index.php" class="muted-link"><?= icon('lock') ?> Super Admin Portal</a>
         </div>
       </div>
     </div>

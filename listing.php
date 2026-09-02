@@ -98,7 +98,7 @@ $cartPayload = json_encode([
     </div>
     <div>
       <div class="flex gap-1" style="flex-wrap:wrap;">
-        <span class="chip chip-royal"><?= e($listing['category_name']) ?></span>
+        <span class="chip chip-tone-<?= category_accent((string) $listing['category_id']) ?>"><?= e($listing['category_name']) ?></span>
         <span class="chip chip-slate"><?= e($listing['grade_level']) ?></span>
         <span class="chip chip-slate"><?= e($conditionLabels[$listing['condition_type']] ?? '') ?></span>
       </div>
