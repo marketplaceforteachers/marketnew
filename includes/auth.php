@@ -128,13 +128,15 @@ function consume_password_reset(string $token, string $newPassword): void
 }
 
 /** Issues an email-verification token (24h expiry) and returns the raw token to embed in the email link. */
-function create_email_verification(int $userId): string
+/** Issues both a link token and a short numeric code (for when the link doesn't work in some
+ * email clients) — returns ['token' => ..., 'code' => ...]; only their hashes are stored. */
+function create_email_verification(int $userId): array
 {
     $token = bin2hex(random_bytes(32));
-    $hash = hash('sha256', $token);
-    db()->prepare('INSERT INTO email_verifications (user_id, token_hash, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 24 HOUR))')
-        ->execute([$userId, $hash]);
-    return $token;
+    $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+    db()->prepare('INSERT INTO email_verifications (user_id, token_hash, code_hash, expires_at) VALUES (?, ?, ?, DATE_ADD(NOW(), INTERVAL 24 HOUR))')
+        ->execute([$userId, hash('sha256', $token), hash('sha256', $code)]);
+    return ['token' => $token, 'code' => $code];
 }
 
 /** Marks the matching user's email verified and consumes the token. Returns true if a valid token was found. */
@@ -149,6 +151,26 @@ function consume_email_verification(string $token): bool
     }
     db()->prepare('UPDATE users SET email_verified_at = NOW() WHERE id = ?')->execute([$row['user_id']]);
     db()->prepare('DELETE FROM email_verifications WHERE user_id = ?')->execute([$row['user_id']]);
+    return true;
+}
+
+/** Same as consume_email_verification but for the 6-digit code, scoped to one already-logged-in
+ * user (so a 6-digit keyspace can't be brute-forced against arbitrary accounts) and rate-limited. */
+function consume_email_verification_code(int $userId, string $code): bool
+{
+    if (is_login_rate_limited($_SERVER['REMOTE_ADDR'] ?? 'unknown')) {
+        return false;
+    }
+    $hash = hash('sha256', trim($code));
+    $stmt = db()->prepare('SELECT id FROM email_verifications WHERE user_id = ? AND code_hash = ? AND expires_at > NOW() LIMIT 1');
+    $stmt->execute([$userId, $hash]);
+    $row = $stmt->fetch();
+    if (!$row) {
+        record_login_attempt($_SERVER['REMOTE_ADDR'] ?? 'unknown');
+        return false;
+    }
+    db()->prepare('UPDATE users SET email_verified_at = NOW() WHERE id = ?')->execute([$userId]);
+    db()->prepare('DELETE FROM email_verifications WHERE user_id = ?')->execute([$userId]);
     return true;
 }
 

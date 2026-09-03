@@ -362,7 +362,7 @@ tbody tr:hover { background: var(--surface-2); }
 .flash-error { background: var(--red-50); color: var(--red-700); border: 1px solid var(--red-100); }
 
 /* Footer */
-.site-footer { background: var(--slate-950); color: var(--slate-300); border-top: 1px solid var(--slate-800); }
+.site-footer { background: linear-gradient(180deg, #101c3a, #0b1428); color: var(--slate-300); border-top: 1px solid rgba(255,255,255,.08); }
 
 .footer-features { border-bottom: 1px solid var(--slate-800); padding: 1.75rem 0; }
 .footer-features .grid { grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }

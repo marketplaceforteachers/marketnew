@@ -57,6 +57,7 @@ CREATE TABLE IF NOT EXISTS email_verifications (
   id              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   user_id         BIGINT UNSIGNED   NOT NULL,
   token_hash      CHAR(64)          NOT NULL,
+  code_hash       CHAR(64)          NOT NULL,
   expires_at      TIMESTAMP         NOT NULL,
   created_at      TIMESTAMP         NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_email_verifications_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
