@@ -92,8 +92,8 @@ $cartPayload = json_encode([
 <div class="container py-8">
   <div class="grid grid-2">
     <div>
-      <div class="listing-img" style="aspect-ratio:4/3;border-radius:.8rem;">
-        <?php if ($images): ?><img src="<?= e($images[0]) ?>" alt="<?= e($listing['title']) ?>"><?php endif; ?>
+      <div class="listing-img cat-<?= category_accent((string) $listing['category_id']) ?>" style="aspect-ratio:4/3;border-radius:.8rem;">
+        <?php if ($images): ?><img src="<?= e($images[0]) ?>" alt="<?= e($listing['title']) ?>"><?php else: ?><span class="listing-img-placeholder"><?= icon('image') ?></span><?php endif; ?>
       </div>
     </div>
     <div>

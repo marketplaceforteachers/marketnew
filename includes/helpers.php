@@ -214,6 +214,7 @@ function icon(string $name, string $class = ''): string
         'mail' => '<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 6 10 7 10-7"/>',
         'share' => '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 10.5 6.8-3.9M8.6 13.5l6.8 3.9"/>',
         'arrow-right' => '<path d="M5 12h14M13 6l6 6-6 6"/>',
+        'image' => '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/>',
         'graduation-cap' => '<path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/><path d="M22 10v6"/>',
         'flask' => '<path d="M9 2v6L4 18a2 2 0 0 0 1.8 3h12.4a2 2 0 0 0 1.8-3L15 8V2"/><path d="M8.5 2h7"/><path d="M6.5 14h11"/>',
         'puzzle' => '<path d="M4 9h3a1 1 0 0 0 1-1V5.5a1.5 1.5 0 0 1 3 0V8a1 1 0 0 0 1 1h3v3a1 1 0 0 1-1 1h-2.5a1.5 1.5 0 0 0 0 3H14a1 1 0 0 1 1 1v3H4v-3a1 1 0 0 1 1-1h2.5a1.5 1.5 0 0 0 0-3H5a1 1 0 0 1-1-1V9Z"/>',
