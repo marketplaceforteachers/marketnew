@@ -206,7 +206,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 
 /* Primary nav — the real site menu, plus seasonal pills as a secondary group */
 .primary-nav { background: var(--band-navy-solid); border-bottom: 1px solid rgba(255,255,255,.08); }
-.primary-nav .bar { display: flex; align-items: center; gap: .35rem; padding: .55rem 1.25rem; max-width: 1200px; margin: 0 auto; overflow-x: auto; white-space: nowrap; scrollbar-width: thin; }
+.primary-nav .bar { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; row-gap: .4rem; padding: .55rem 1.25rem; max-width: 1200px; margin: 0 auto; }
 .primary-nav > .bar > a { color: var(--slate-200); font-weight: 600; font-size: .82rem; padding: .45rem .75rem; border-radius: var(--radius-sm); }
 .primary-nav > .bar > a:hover { background: rgba(255,255,255,.08); color: #fff; }
 .primary-nav-sep { width: 1px; align-self: stretch; margin: .3rem .5rem; background: var(--slate-800); flex-shrink: 0; }
