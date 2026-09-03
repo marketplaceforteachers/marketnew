@@ -41,6 +41,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && post('form') === 'password') {
         flash('success', 'Profile updated.');
         redirect('/account.php');
     }
+} elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && post('form') === 'resend_verification') {
+    verify_csrf();
+    require_once __DIR__ . '/includes/resend.php';
+    if (!$me['email_verified_at']) {
+        $verifyToken = create_email_verification((int) $me['id']);
+        $verifyUrl = (defined('APP_URL') ? APP_URL : '') . '/verify-email.php?token=' . $verifyToken;
+        send_transactional_email('email_verification', $me['email'], [
+            'name' => $me['name'],
+            'verify_url' => $verifyUrl,
+            'site_name' => get_setting('branding')['siteName'],
+        ]);
+    }
+    flash('success', 'Verification email sent — check your inbox.');
+    redirect('/account.php');
 }
 
 $page_title = 'My Account';
@@ -49,6 +63,15 @@ require __DIR__ . '/includes/layout_header.php';
 <div class="container-sm py-8">
   <h1 class="text-xl">My Account</h1>
   <p class="text-sm text-muted mt-1"><?= e($me['name']) ?> &middot; <?= e($me['email']) ?></p>
+
+  <?php if (!$me['email_verified_at']): ?>
+    <div class="flash flash-error mt-4 flex justify-between items-center" style="flex-wrap:wrap;gap:.5rem;">
+      <span><?= icon('alert-triangle') ?> Your email address isn't verified yet.</span>
+      <form method="post"><?= csrf_field() ?><input type="hidden" name="form" value="resend_verification">
+        <button type="submit" class="link text-xs" style="background:none;border:none;cursor:pointer;">Resend verification email</button>
+      </form>
+    </div>
+  <?php endif; ?>
 
   <?php if ($error): ?><div class="flash flash-error mt-4"><?= e($error) ?></div><?php endif; ?>
 

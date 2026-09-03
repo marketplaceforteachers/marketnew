@@ -110,7 +110,7 @@ $moreCategoriesCount = max(0, count($categories) - $categoryLimit);
 </section>
 <?php endif; ?>
 
-<section class="py-8">
+<section class="py-8 section-glow-soft">
   <div class="container">
     <div class="flex justify-between items-center">
       <div>

@@ -21,22 +21,76 @@ function send_transactional_email(string $templateKey, string $to, array $data =
     }
 
     $subject = render_template($template['subject'], $data);
-    $html = render_template($template['html_body'], $data);
+    $bodyHtml = render_template($template['html_body'], $data);
+    $html = wrap_email_letterhead($bodyHtml, $subject);
     $result = dispatch_email($to, $subject, $html);
 
     log_email($templateKey, $to, $result['status']);
     return $result;
 }
 
+/**
+ * Wraps a template's raw message HTML in a branded letterhead: a colored header with the
+ * two-tone wordmark, a white content card, and a muted footer — table-based layout with inline
+ * styles throughout, since email clients don't reliably support flexbox/grid or <style> blocks.
+ */
+function wrap_email_letterhead(string $bodyHtml, string $preheader = ''): string
+{
+    $branding = get_setting('branding');
+    $footer = get_setting('footer');
+    $siteName = $branding['siteName'];
+    $tagline = $branding['tagline'];
+    $split = split_site_name($siteName);
+    $hasComSuffix = (bool) preg_match('/\.com$/i', $siteName);
+    $year = date('Y');
+    $supportEmail = $footer['supportEmail'] ?? '';
+    $address = $footer['address'] ?? '';
+
+    $wordmark = '<span style="color:#0f172a;">' . e($split['first']) . '</span>'
+        . ($split['rest'] ? '<span style="color:#d97706;">' . e($split['rest']) . '</span>' : '')
+        . ($hasComSuffix ? '<span style="color:#0f172a;">.com</span>' : '');
+
+    ob_start();
+    ?>
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f1f5f9;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;"><?= e($preheader) ?></div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:32px 16px;">
+    <tr><td align="center">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;">
+        <tr><td style="background:#1e3a8a;border-radius:10px 10px 0 0;padding:22px 28px;text-align:center;">
+          <span style="font-size:19px;font-weight:800;letter-spacing:-.01em;"><?= $wordmark ?></span><br>
+          <span style="font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#bfdbfe;"><?= e($tagline) ?></span>
+        </td></tr>
+        <tr><td style="background:#ffffff;padding:32px 28px;border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0;color:#1e293b;font-size:14px;line-height:1.65;">
+          <?= $bodyHtml ?>
+        </td></tr>
+        <tr><td style="background:#f8fafc;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 10px 10px;padding:20px 28px;text-align:center;font-size:11px;color:#94a3b8;line-height:1.6;">
+          &copy; <?= $year ?> <?= e($siteName) ?>. All rights reserved.<br>
+          <?php if ($address): ?><?= e($address) ?><br><?php endif; ?>
+          <?php if ($supportEmail): ?>Questions? <a href="mailto:<?= e($supportEmail) ?>" style="color:#2563eb;">Contact support</a><?php endif; ?>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>
+    <?php
+    return ob_get_clean();
+}
+
 /** Sends a plain test message through the currently-configured delivery method, for the admin "Send test email" button. Not logged to email_logs since it's not a real template send. */
 function send_test_email(string $to): array
 {
     $siteName = get_setting('branding')['siteName'];
-    return dispatch_email(
-        $to,
-        "Test email from $siteName",
-        "<p>This is a test email from your $siteName admin panel. If you received this, your email delivery is working.</p>"
+    $subject = "Test email from $siteName";
+    $html = wrap_email_letterhead(
+        "<p>This is a test email from your $siteName admin panel.</p><p>If you received this looking like a real branded email (not raw HTML), your email delivery — and the letterhead template — are both working.</p>",
+        $subject
     );
+    return dispatch_email($to, $subject, $html);
 }
 
 /** Routes a rendered email to the admin-configured delivery method. */

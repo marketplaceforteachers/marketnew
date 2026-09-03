@@ -127,6 +127,31 @@ function consume_password_reset(string $token, string $newPassword): void
     db()->prepare('UPDATE password_resets SET used_at = NOW() WHERE id = ?')->execute([$reset['id']]);
 }
 
+/** Issues an email-verification token (24h expiry) and returns the raw token to embed in the email link. */
+function create_email_verification(int $userId): string
+{
+    $token = bin2hex(random_bytes(32));
+    $hash = hash('sha256', $token);
+    db()->prepare('INSERT INTO email_verifications (user_id, token_hash, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 24 HOUR))')
+        ->execute([$userId, $hash]);
+    return $token;
+}
+
+/** Marks the matching user's email verified and consumes the token. Returns true if a valid token was found. */
+function consume_email_verification(string $token): bool
+{
+    $hash = hash('sha256', $token);
+    $stmt = db()->prepare('SELECT id, user_id FROM email_verifications WHERE token_hash = ? AND expires_at > NOW() LIMIT 1');
+    $stmt->execute([$hash]);
+    $row = $stmt->fetch();
+    if (!$row) {
+        return false;
+    }
+    db()->prepare('UPDATE users SET email_verified_at = NOW() WHERE id = ?')->execute([$row['user_id']]);
+    db()->prepare('DELETE FROM email_verifications WHERE user_id = ?')->execute([$row['user_id']]);
+    return true;
+}
+
 function register_user(string $firstName, string $lastName, string $email, string $password, string $role, array $profile = []): ?array
 {
     $stmt = db()->prepare('SELECT id FROM users WHERE email = ?');

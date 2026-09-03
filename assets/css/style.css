@@ -279,6 +279,15 @@ a.card:hover, .card.hoverable:hover { box-shadow: var(--shadow-md); border-color
   border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
 }
 .section-band > .container { position: relative; }
+/* A quieter cousin of .section-band for sections whose real content (product photos) should stay
+   the focus — same brand-glow language, much lower opacity, on the plain page background. */
+.section-glow-soft {
+  position: relative; overflow: hidden;
+  background:
+    radial-gradient(ellipse 640px 360px at 100% 0%, rgba(13,148,136,.07), transparent 60%),
+    radial-gradient(ellipse 560px 380px at 0% 100%, rgba(37,99,235,.06), transparent 60%);
+}
+.section-glow-soft > .container { position: relative; }
 .section-eyebrow { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--royal-600); }
 .category-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; }
 @media (max-width: 900px) { .category-grid { grid-template-columns: repeat(3, 1fr); } }

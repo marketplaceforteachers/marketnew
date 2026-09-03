@@ -46,6 +46,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $mode = 'register';
             } else {
                 send_transactional_email('welcome', $user['email'], ['teacher_name' => $user['name'], 'site_name' => get_setting('branding')['siteName']]);
+                $verifyToken = create_email_verification((int) $user['id']);
+                $verifyUrl = (defined('APP_URL') ? APP_URL : '') . '/verify-email.php?token=' . $verifyToken;
+                send_transactional_email('email_verification', $user['email'], [
+                    'name' => $user['name'],
+                    'verify_url' => $verifyUrl,
+                    'site_name' => get_setting('branding')['siteName'],
+                ]);
                 redirect(post('redirect_to', '/index.php'));
             }
         }
