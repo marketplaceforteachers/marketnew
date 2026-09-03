@@ -43,7 +43,7 @@ $page_title = 'Messages';
 require __DIR__ . '/includes/layout_header.php';
 ?>
 <div class="container py-8">
-  <div class="grid" style="grid-template-columns:260px 1fr;">
+  <div class="grid layout-messages">
     <div>
       <h1 class="text-lg flex items-center gap-2"><?= icon('message') ?> Messages</h1>
       <div class="stack mt-3">

@@ -103,6 +103,16 @@ body {
 a { color: inherit; text-decoration: none; }
 img { max-width: 100%; display: block; }
 h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -.01em; }
+/* Every page's content area gets the same premium color-glow the homepage sections have —
+   applied here once on <main> (present on every public page) instead of the fainter,
+   easy-to-miss version on body alone, which mostly disappeared behind white cards. */
+main {
+  position: relative; display: block;
+  background:
+    radial-gradient(ellipse 820px 480px at 90% 0%, rgba(37,99,235,.09), transparent 55%),
+    radial-gradient(ellipse 700px 460px at 0% 55%, rgba(245,158,11,.08), transparent 55%),
+    radial-gradient(ellipse 760px 520px at 85% 100%, rgba(13,148,136,.08), transparent 55%);
+}
 p { margin: 0; }
 button, input, select, textarea { font: inherit; color: inherit; }
 ::selection { background: var(--royal-200); color: var(--slate-900); }
@@ -123,6 +133,18 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .grid-4 { grid-template-columns: repeat(4, 1fr); }
 @media (max-width: 900px) { .grid-3, .grid-4 { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 600px) { .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; } }
+
+/* Fixed-pixel-column sidebar layouts (filters, cart summary, message threads) — these MUST
+   collapse to a single stacked column on mobile, or the fixed column alone can eat most of a
+   375px viewport and force horizontal scrolling on the whole page. */
+.layout-filters { grid-template-columns: 220px 1fr; }
+.layout-cart { grid-template-columns: 1fr 320px; }
+.layout-messages { grid-template-columns: 260px 1fr; }
+.field-row-grid { display: grid; grid-template-columns: 8rem 8rem 1fr 1fr auto; gap: .5rem; align-items: start; }
+@media (max-width: 720px) {
+  .layout-filters, .layout-cart, .layout-messages { grid-template-columns: 1fr; }
+  .field-row-grid { grid-template-columns: 1fr; }
+}
 .mt-1{margin-top:.25rem}.mt-2{margin-top:.5rem}.mt-3{margin-top:.75rem}.mt-4{margin-top:1rem}.mt-6{margin-top:1.5rem}.mt-8{margin-top:2rem}
 .mb-2{margin-bottom:.5rem}.mb-4{margin-bottom:1rem}
 .py-6{padding-top:1.5rem;padding-bottom:1.5rem}.py-8{padding-top:2.25rem;padding-bottom:2.25rem}.py-10{padding-top:3rem;padding-bottom:3rem}
@@ -294,15 +316,6 @@ a.card:hover, .card.hoverable:hover { box-shadow: var(--shadow-md); border-color
   border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
 }
 .section-band > .container { position: relative; }
-/* A quieter cousin of .section-band for sections whose real content (product photos) should stay
-   the focus — same brand-glow language, much lower opacity, on the plain page background. */
-.section-glow-soft {
-  position: relative; overflow: hidden;
-  background:
-    radial-gradient(ellipse 640px 360px at 100% 0%, rgba(13,148,136,.07), transparent 60%),
-    radial-gradient(ellipse 560px 380px at 0% 100%, rgba(37,99,235,.06), transparent 60%);
-}
-.section-glow-soft > .container { position: relative; }
 .section-eyebrow { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--royal-600); }
 .category-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; }
 @media (max-width: 900px) { .category-grid { grid-template-columns: repeat(3, 1fr); } }

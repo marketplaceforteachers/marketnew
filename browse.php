@@ -38,7 +38,6 @@ $listings = $stmt->fetchAll();
 $grades = ['Pre-K', 'K-2', '2nd-4th', '4th-8th', 'K-5', '6th-8th', '9th-12th'];
 $conditionOptions = ['new' => 'New', 'like_new' => 'Like New', 'good' => 'Good', 'fair' => 'Fair', 'digital_download' => 'Digital Download'];
 ?>
-<div class="section-glow-soft">
 <div class="container py-8">
   <div class="flex justify-between items-center" style="flex-wrap:wrap;gap:1rem;">
     <h1 class="text-xl">Browse Classroom Listings</h1>
@@ -51,7 +50,7 @@ $conditionOptions = ['new' => 'New', 'like_new' => 'Like New', 'good' => 'Good',
     </form>
   </div>
 
-  <div class="grid" style="grid-template-columns:220px 1fr;margin-top:1.5rem;">
+  <div class="grid layout-filters mt-6">
     <aside>
       <h2 class="flex items-center gap-2 font-bold text-sm"><?= icon('toggle') ?> Filters</h2>
       <form method="get" class="stack mt-2">
@@ -115,7 +114,6 @@ $conditionOptions = ['new' => 'New', 'like_new' => 'Like New', 'good' => 'Good',
       </div>
     </div>
   </div>
-</div>
 </div>
 
 <?php require __DIR__ . '/includes/layout_footer.php'; ?>

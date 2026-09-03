@@ -213,7 +213,7 @@ function icon_datalist(string $id, array $keys): string
   <h3 class="text-lg mt-4">Feature strip (top of footer)</h3>
   <div id="ff-rows-list" class="stack mt-2">
     <?php foreach ($footer['features'] as $f): ?>
-      <div class="dynamic-row grid mt-2" style="grid-template-columns:8rem 8rem 1fr 1fr auto;gap:.5rem;align-items:start;">
+      <div class="dynamic-row field-row-grid mt-2">
         <input type="text" name="ff_icon[]" list="icon-keys" placeholder="icon" value="<?= e($f['icon']) ?>">
         <input type="text" name="ff_color[]" placeholder="var(--royal-600)" value="<?= e($f['color']) ?>">
         <input type="text" name="ff_title[]" placeholder="Title" value="<?= e($f['title']) ?>">
@@ -223,7 +223,7 @@ function icon_datalist(string $id, array $keys): string
     <?php endforeach; ?>
   </div>
   <template id="ff-rows">
-    <div class="dynamic-row grid mt-2" style="grid-template-columns:8rem 8rem 1fr 1fr auto;gap:.5rem;align-items:start;">
+    <div class="dynamic-row field-row-grid mt-2">
       <input type="text" name="ff_icon[]" list="icon-keys" placeholder="icon">
       <input type="text" name="ff_color[]" placeholder="var(--royal-600)">
       <input type="text" name="ff_title[]" placeholder="Title">

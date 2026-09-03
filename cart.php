@@ -10,7 +10,7 @@ require __DIR__ . '/includes/layout_header.php';
     <a href="/browse.php" class="btn btn-primary mt-3">Browse Listings</a>
   </div>
   <div id="cart-content" class="hidden" style="margin-top:1.5rem;">
-    <div class="grid" style="grid-template-columns:1fr 320px;">
+    <div class="grid layout-cart">
       <div id="cart-items" class="stack"></div>
       <div class="card card-pad" style="align-self:start;">
         <h2 class="text-lg">Order Summary</h2>
