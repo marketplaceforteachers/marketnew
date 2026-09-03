@@ -68,12 +68,19 @@
   --ease: cubic-bezier(.4, 0, .2, 1);
   --accent: var(--royal-600);
 
-  /* Content surfaces — light and airy; the navy header/hero/footer stay dark for brand framing */
-  --bg: var(--slate-50);
+  /* The one dark-navy treatment shared by every dark band — header, primary nav, trust bar,
+     footer, admin sidebar — so they all read as the same surface instead of a mix of flat navy
+     and neutral near-black. */
+  --band-navy: linear-gradient(180deg, #101c3a, #0b1428);
+  --band-navy-solid: #0d1830;
+
+  /* Content surfaces — a whisper of cool navy tint instead of flat neutral gray, so the light
+     areas feel like part of the same brand rather than a generic gray template. */
+  --bg: #f5f7fc;
   --surface: #ffffff;
-  --surface-2: var(--slate-100);
-  --border: var(--slate-200);
-  --border-strong: var(--slate-300);
+  --surface-2: #eef1f8;
+  --border: #e1e6f0;
+  --border-strong: #ccd3e3;
   --text: var(--slate-900);
   --text-muted: var(--slate-500);
 }
@@ -82,7 +89,12 @@
 html, body { margin: 0; padding: 0; }
 body {
   font-family: -apple-system, "Segoe UI", "Inter", ui-sans-serif, Roboto, Helvetica, Arial, sans-serif;
-  background: var(--bg);
+  background:
+    radial-gradient(ellipse 900px 560px at 12% 0%, rgba(37,99,235,.05), transparent 55%),
+    radial-gradient(ellipse 760px 520px at 100% 45%, rgba(245,158,11,.045), transparent 55%),
+    radial-gradient(ellipse 820px 600px at 8% 100%, rgba(13,148,136,.045), transparent 55%),
+    var(--bg);
+  background-attachment: fixed;
   color: var(--text);
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
@@ -121,7 +133,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .w-full{width:100%}
 
 /* Header — flat, no gradient; the navy is the brand color, used solid */
-.site-header { position: sticky; top: 0; z-index: 40; background: var(--royal-900); border-bottom: 1px solid rgba(255,255,255,.08); }
+.site-header { position: sticky; top: 0; z-index: 40; background: var(--band-navy); border-bottom: 1px solid rgba(255,255,255,.08); }
 .site-header .bar { display: flex; align-items: center; gap: 1rem; padding: .8rem 1.25rem; max-width: 1200px; margin: 0 auto; flex-wrap: wrap; }
 .logo { display: flex; align-items: center; gap: .65rem; flex-shrink: 0; }
 .logo-icon { width: 2.35rem; height: 2.35rem; border-radius: 10px; background: linear-gradient(135deg, #1e3a8a, #1e40af 60%, #0f172a); border: 1px solid rgba(59,130,246,.4); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-xs); }
@@ -171,7 +183,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .account-dropdown a:hover, .account-dropdown button:hover { background: var(--surface-2); }
 
 /* Primary nav — the real site menu, plus seasonal pills as a secondary group */
-.primary-nav { background: var(--slate-950); border-bottom: 1px solid var(--slate-800); }
+.primary-nav { background: var(--band-navy-solid); border-bottom: 1px solid rgba(255,255,255,.08); }
 .primary-nav .bar { display: flex; align-items: center; gap: .35rem; padding: .55rem 1.25rem; max-width: 1200px; margin: 0 auto; overflow-x: auto; white-space: nowrap; scrollbar-width: thin; }
 .primary-nav > .bar > a { color: var(--slate-200); font-weight: 600; font-size: .82rem; padding: .45rem .75rem; border-radius: var(--radius-sm); }
 .primary-nav > .bar > a:hover { background: rgba(255,255,255,.08); color: #fff; }
@@ -185,12 +197,12 @@ button, input, select, textarea { font: inherit; color: inherit; }
    while giving the section depth and life instead of a flat gradient. */
 .hero {
   position: relative;
-  background: linear-gradient(160deg, var(--royal-900), var(--royal-800) 55%, #16255c 100%);
+  background: linear-gradient(160deg, var(--royal-900), var(--royal-800) 55%, #0b1428 100%);
   color: #fff; padding: 5.5rem 0 4.5rem; overflow: hidden;
 }
 .hero::after {
   content: ""; position: absolute; inset: auto 0 0 0; height: 5rem; z-index: 1;
-  background: linear-gradient(to bottom, transparent, rgba(2,6,23,.55));
+  background: linear-gradient(to bottom, transparent, rgba(11,20,40,.55));
   pointer-events: none;
 }
 .hero-slides { position: absolute; inset: 0; z-index: 0; }
@@ -205,7 +217,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   background:
     radial-gradient(ellipse 640px 420px at 15% -10%, rgba(96,165,250,.25), transparent 60%),
     radial-gradient(ellipse 520px 360px at 88% 8%, rgba(251,191,36,.12), transparent 60%),
-    linear-gradient(160deg, rgba(30,58,138,.88), rgba(30,64,175,.82) 55%, rgba(22,37,92,.9) 100%);
+    linear-gradient(160deg, rgba(30,58,138,.88), rgba(30,64,175,.82) 55%, rgba(11,20,40,.92) 100%);
 }
 .hero-centered { text-align: center; }
 .hero-inner { max-width: 46rem; margin: 0 auto; position: relative; }
@@ -222,7 +234,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 @media (max-width: 640px) { .hero h1 { font-size: 2rem; } }
 
 /* Trust bar */
-.trust-bar { background: var(--slate-950); color: #fff; padding: 2.75rem 0; }
+.trust-bar { background: var(--band-navy); color: #fff; padding: 2.75rem 0; }
 .trust-bar .grid { grid-template-columns: 1.5fr 1fr; }
 @media (max-width: 900px) { .trust-bar .grid { grid-template-columns: 1fr; } }
 .badge-chip { display: inline-flex; align-items: center; gap: .35rem; border-radius: var(--radius-sm); padding: .3rem .75rem; font-size: .75rem; font-weight: 500; }
@@ -336,7 +348,7 @@ tbody tr:hover { background: var(--surface-2); }
 
 /* Admin layout */
 .admin-shell { display: flex; min-height: 100vh; background: var(--bg); }
-.admin-sidebar { width: 250px; flex-shrink: 0; background: var(--slate-950); color: #fff; display: flex; flex-direction: column; border-right: 1px solid var(--slate-800); }
+.admin-sidebar { width: 250px; flex-shrink: 0; background: var(--band-navy); color: #fff; display: flex; flex-direction: column; border-right: 1px solid rgba(255,255,255,.08); }
 .admin-sidebar .logo-area { padding: 1.1rem 1rem; border-bottom: 1px solid var(--slate-800); }
 .admin-sidebar .logo-text .name { font-size: .82rem; }
 .admin-sidebar .logo-text .tagline { display: none; }
