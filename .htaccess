@@ -1,3 +1,11 @@
+# Canonicalize www -> bare domain (both currently serve identical content with a 200, which
+# splits SEO signals across two hostnames instead of consolidating to one indexable URL).
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{HTTP_HOST} ^www\.marketplaceforteachers\.com$ [NC]
+    RewriteRule ^(.*)$ https://marketplaceforteachers.com/$1 [L,R=301]
+</IfModule>
+
 # Deny direct access to files that should never be requested directly.
 <FilesMatch "^(config\.php)$">
     Require all denied

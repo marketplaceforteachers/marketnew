@@ -31,7 +31,13 @@ $stmt = db()->prepare(
 $stmt->execute([$me['id'], $me['id'], $me['id']]);
 $threads = $stmt->fetchAll();
 
-$activeThreadId = (int) ($_GET['thread'] ?? ($threads[0]['id'] ?? 0));
+// $threads above is already scoped to the current user (buyer_id/seller_id = $me['id']) — only
+// ever load messages for a thread that's actually in that list, never a raw ?thread= value
+// straight from the URL, or any logged-in user could read any other pair's private conversation
+// just by changing the number.
+$myThreadIds = array_column($threads, 'id');
+$requestedThreadId = (int) ($_GET['thread'] ?? 0);
+$activeThreadId = in_array($requestedThreadId, $myThreadIds, true) ? $requestedThreadId : (int) ($threads[0]['id'] ?? 0);
 $activeMessages = [];
 if ($activeThreadId) {
     $stmt = db()->prepare('SELECT * FROM messages WHERE thread_id = ? ORDER BY created_at ASC');

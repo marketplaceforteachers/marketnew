@@ -1,9 +1,25 @@
 <?php
 require_once __DIR__ . '/includes/bootstrap.php';
+require_once __DIR__ . '/includes/uploads.php';
 $me = require_auth();
 $error = null;
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && post('form') === 'password') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && post('form') === 'avatar') {
+    verify_csrf();
+    $result = handle_image_upload($_FILES['avatar'] ?? [], 'avatars');
+    if ($result['ok']) {
+        db()->prepare('UPDATE users SET avatar_url = ? WHERE id = ?')->execute([$result['url'], $me['id']]);
+        flash('success', 'Profile photo updated.');
+    } else {
+        flash('error', $result['error']);
+    }
+    redirect('/account.php');
+} elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && post('form') === 'remove_avatar') {
+    verify_csrf();
+    db()->prepare('UPDATE users SET avatar_url = NULL WHERE id = ?')->execute([$me['id']]);
+    flash('success', 'Profile photo removed.');
+    redirect('/account.php');
+} elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && post('form') === 'password') {
     verify_csrf();
     $currentPassword = post('currentPassword');
     $newPassword = post('newPassword');
@@ -72,6 +88,32 @@ require __DIR__ . '/includes/layout_header.php';
 <div class="container-sm py-8">
   <h1 class="text-xl">My Account</h1>
   <p class="text-sm text-muted mt-1"><?= e($me['name']) ?> &middot; <?= e($me['email']) ?></p>
+
+  <div class="card card-pad mt-4">
+    <h2 class="text-lg">Profile Photo</h2>
+    <div class="flex gap-4 mt-2" style="align-items:center;flex-wrap:wrap;">
+      <?php if ($me['avatar_url']): ?>
+        <img src="<?= e($me['avatar_url']) ?>" alt="" style="width:4.5rem;height:4.5rem;border-radius:999px;object-fit:cover;flex-shrink:0;">
+      <?php else: ?>
+        <span class="avatar-btn" style="width:4.5rem;height:4.5rem;font-size:1.5rem;border-radius:999px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <?= e(strtoupper(substr($me['name'], 0, 2))) ?>
+        </span>
+      <?php endif; ?>
+      <div style="flex:1;min-width:14rem;">
+        <form method="post" enctype="multipart/form-data" class="flex gap-2" style="align-items:center;flex-wrap:wrap;">
+          <?= csrf_field() ?><input type="hidden" name="form" value="avatar">
+          <input type="file" name="avatar" accept="image/jpeg,image/png,image/webp" required>
+          <button type="submit" class="btn btn-outline" style="padding:.5rem .9rem;font-size:.82rem;">Upload</button>
+        </form>
+        <?php if ($me['avatar_url']): ?>
+          <form method="post" class="mt-2"><?= csrf_field() ?><input type="hidden" name="form" value="remove_avatar">
+            <button type="submit" class="link text-xs" style="background:none;border:none;cursor:pointer;color:var(--red-600);">Remove photo</button>
+          </form>
+        <?php endif; ?>
+        <p class="text-xs text-muted mt-1">JPEG, PNG, or WebP. Optional — buyers and sellers can leave this blank.</p>
+      </div>
+    </div>
+  </div>
 
   <?php if (!$me['email_verified_at']): ?>
     <div class="flash flash-error mt-4">

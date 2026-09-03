@@ -1,7 +1,5 @@
 <?php
 require_once __DIR__ . '/includes/bootstrap.php';
-$page_title = 'Browse Classroom Listings';
-require __DIR__ . '/includes/layout_header.php';
 
 $category = param('category');
 $grade = param('grade');
@@ -18,6 +16,40 @@ $sortOptions = [
 $orderBy = $sortOptions[$sort] ?? $sortOptions['newest'];
 
 $categories = db()->query('SELECT id, name, slug FROM categories ORDER BY name')->fetchAll();
+$activeCategoryName = null;
+if ($category) {
+    foreach ($categories as $c) {
+        if ($c['slug'] === $category) { $activeCategoryName = $c['name']; break; }
+    }
+}
+
+// Category-only views are worth their own title/description for search (e.g. "Math Resources for
+// Teachers"); a live text search is a results page, not distinct content, so keep it out of the
+// index to avoid thin/duplicate-content pages piling up in Search Console.
+if ($q !== '') {
+    $page_title = 'Search results for "' . $q . '"';
+    $page_description = 'Classroom listings matching "' . $q . '" on ' . get_setting('branding')['siteName'] . '.';
+    $page_noindex = true;
+} elseif ($activeCategoryName) {
+    $page_title = $activeCategoryName . ' for Teachers';
+    $page_description = 'Browse ' . $activeCategoryName . ' listings from verified teachers — buy, sell, and exchange classroom supplies affordably.';
+} else {
+    $page_title = 'Browse Classroom Listings';
+    $page_description = 'Browse classroom supplies, books, furniture, and STEM kits from verified teachers nationwide.';
+}
+// Sort order doesn't change page content, only its order — canonicalize it away so every sort
+// permutation of the same filter set consolidates to one indexable URL.
+$page_canonical = build_canonical_url(['sort']);
+$page_jsonld = [[
+    '@context' => 'https://schema.org',
+    '@type' => 'BreadcrumbList',
+    'itemListElement' => array_values(array_filter([
+        ['@type' => 'ListItem', 'position' => 1, 'name' => 'Home', 'item' => site_origin() . '/'],
+        ['@type' => 'ListItem', 'position' => 2, 'name' => 'Browse', 'item' => site_origin() . '/browse.php'],
+        $activeCategoryName ? ['@type' => 'ListItem', 'position' => 3, 'name' => $activeCategoryName] : null,
+    ])),
+]];
+require __DIR__ . '/includes/layout_header.php';
 
 $conditions = ['l.is_active = 1'];
 $params = [];
@@ -40,7 +72,7 @@ $conditionOptions = ['new' => 'New', 'like_new' => 'Like New', 'good' => 'Good',
 ?>
 <div class="container py-8">
   <div class="flex justify-between items-center" style="flex-wrap:wrap;gap:1rem;">
-    <h1 class="text-xl">Browse Classroom Listings</h1>
+    <h1 class="text-xl"><?= e($page_title) ?></h1>
     <form method="get" class="flex gap-2">
       <?php foreach (['category' => $category, 'grade' => $grade, 'condition' => $condition, 'shipping' => $shipping, 'sort' => $sort] as $k => $v): ?>
         <?php if ($v): ?><input type="hidden" name="<?= $k ?>" value="<?= e($v) ?>"><?php endif; ?>

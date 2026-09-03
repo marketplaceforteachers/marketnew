@@ -12,4 +12,4 @@ Disallow: /seller-verification.php
 Disallow: /install.php
 Disallow: /config.php
 
-Sitemap: /sitemap.php
+Sitemap: https://marketplaceforteachers.com/sitemap.php

@@ -11,7 +11,7 @@ try {
     $intent = stripe_retrieve_payment_intent($paymentIntentId);
     if (($intent['status'] ?? '') !== 'succeeded') json_response(['error' => 'Payment not completed'], 402);
     $meta = $intent['metadata'];
-    record_donation((int) $meta['campaignId'], $intent['amount'] / 100, $meta['donorName'], $meta['donorEmail']);
+    record_donation((int) $meta['campaignId'], $intent['amount'] / 100, $meta['donorName'], $meta['donorEmail'], $intent['id']);
     json_response(['status' => 'recorded']);
 } catch (Exception $e) {
     json_response(['error' => $e->getMessage()], 503);

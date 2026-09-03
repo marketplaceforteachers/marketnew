@@ -23,6 +23,7 @@ $navItems = [
     'email-drips.php' => ['icon' => 'send', 'label' => 'Email Drip Campaigns'],
     'financial.php' => ['icon' => 'file-bar', 'label' => 'Financial & Tax Reporting'],
     'branding.php' => ['icon' => 'palette', 'label' => 'Branding & Homepage'],
+    'blog.php' => ['icon' => 'book', 'label' => 'Blog'],
     'feature-toggles.php' => ['icon' => 'toggle', 'label' => 'Site Feature Toggles'],
     'audit-log.php' => ['icon' => 'history', 'label' => 'Admin Audit Log'],
 ];

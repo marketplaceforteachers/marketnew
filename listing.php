@@ -3,7 +3,7 @@ require_once __DIR__ . '/includes/bootstrap.php';
 
 $slug = param('slug');
 $stmt = db()->prepare(
-    "SELECT l.*, u.name AS seller_name, u.is_verified AS seller_verified, u.id AS seller_id, c.name AS category_name
+    "SELECT l.*, u.name AS seller_name, u.is_verified AS seller_verified, u.id AS seller_id, c.name AS category_name, c.slug AS category_slug
      FROM listings l JOIN users u ON u.id = l.seller_id JOIN categories c ON c.id = l.category_id
      WHERE l.slug = ? LIMIT 1"
 );
@@ -13,6 +13,7 @@ $listing = $stmt->fetch();
 if (!$listing) {
     http_response_code(404);
     $page_title = 'Not Found';
+    $page_noindex = true;
     require __DIR__ . '/includes/layout_header.php';
     echo '<div class="container py-10 text-center"><p>Listing not found.</p></div>';
     require __DIR__ . '/includes/layout_footer.php';
@@ -80,6 +81,46 @@ $conditionLabels = ['new' => 'New', 'like_new' => 'Like New', 'good' => 'Good', 
 $page_title = $listing['title'];
 $page_description = truncate($listing['description'], 160);
 $page_image = $images[0] ?? null;
+$page_canonical = build_canonical_url();
+
+$schemaCondition = match ($listing['condition_type']) {
+    'new', 'digital_download' => 'https://schema.org/NewCondition',
+    default => 'https://schema.org/UsedCondition',
+};
+$siteHost = site_origin();
+// Note: deliberately no aggregateRating/review here — $reviews below are reviews of the SELLER,
+// not this specific listing, and attaching seller reviews to a Product's rating misrepresents
+// what's being reviewed, which is exactly the kind of misuse Google's structured-data policy
+// disallows (and can get rich-result eligibility revoked for the whole site).
+$page_jsonld = [
+    array_filter([
+        '@context' => 'https://schema.org',
+        '@type' => 'Product',
+        'name' => $listing['title'],
+        'description' => $listing['description'],
+        'image' => $images ?: null,
+        'category' => $listing['category_name'],
+        'offers' => array_filter([
+            '@type' => 'Offer',
+            'url' => $page_canonical,
+            'priceCurrency' => 'USD',
+            'price' => (string) $listing['price'],
+            'availability' => $listing['is_active'] ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+            'itemCondition' => $schemaCondition,
+            'seller' => ['@type' => 'Person', 'name' => $listing['seller_name']],
+        ]),
+    ]),
+    [
+        '@context' => 'https://schema.org',
+        '@type' => 'BreadcrumbList',
+        'itemListElement' => [
+            ['@type' => 'ListItem', 'position' => 1, 'name' => 'Home', 'item' => $siteHost . '/'],
+            ['@type' => 'ListItem', 'position' => 2, 'name' => 'Browse', 'item' => $siteHost . '/browse.php'],
+            ['@type' => 'ListItem', 'position' => 3, 'name' => $listing['category_name'], 'item' => $siteHost . '/browse.php?category=' . urlencode($listing['category_slug'] ?? '')],
+            ['@type' => 'ListItem', 'position' => 4, 'name' => $listing['title']],
+        ],
+    ],
+];
 require __DIR__ . '/includes/layout_header.php';
 
 $cartPayload = json_encode([

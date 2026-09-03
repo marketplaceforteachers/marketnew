@@ -6,7 +6,7 @@ if (current_user()) {
 }
 
 $mode = ($_GET['mode'] ?? 'login') === 'register' ? 'register' : 'login';
-$redirectTo = $_GET['redirect'] ?? '/index.php';
+$redirectTo = safe_local_redirect_path($_GET['redirect'] ?? null);
 $error = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -54,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'code' => $verification['code'],
                     'site_name' => get_setting('branding')['siteName'],
                 ]);
-                redirect(post('redirect_to', '/index.php'));
+                redirect(safe_local_redirect_path(post('redirect_to', '/index.php')));
             }
         }
     } else {
@@ -67,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 record_login_attempt($ip);
                 $error = 'Invalid email or password.';
             } else {
-                redirect(post('redirect_to', '/index.php'));
+                redirect(safe_local_redirect_path(post('redirect_to', '/index.php')));
             }
         }
     }

@@ -35,6 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // users — registration/profile fields
     $userColumns = [
         'first_name' => 'VARCHAR(80) NULL AFTER name',
+        'avatar_url' => 'VARCHAR(500) NULL',
         'last_name' => 'VARCHAR(80) NULL AFTER first_name',
         'account_type' => 'VARCHAR(30) NULL AFTER role',
         'phone' => 'VARCHAR(30) NULL',
@@ -82,6 +83,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           CONSTRAINT fk_password_resets_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
           KEY idx_password_resets_token (token_hash)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+        'blog_posts' => "CREATE TABLE IF NOT EXISTS blog_posts (
+          id              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+          title           VARCHAR(255)      NOT NULL,
+          slug            VARCHAR(255)      NOT NULL,
+          excerpt         VARCHAR(320),
+          content         MEDIUMTEXT        NOT NULL,
+          cover_image_url VARCHAR(500),
+          author_name     VARCHAR(150)      NOT NULL DEFAULT 'MarketplaceForTeachers.com Team',
+          status          ENUM('draft','published') NOT NULL DEFAULT 'draft',
+          source          ENUM('manual','ai_generated') NOT NULL DEFAULT 'manual',
+          source_url      VARCHAR(500),
+          published_at    TIMESTAMP         NULL,
+          created_at      TIMESTAMP         NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          updated_at      TIMESTAMP         NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          UNIQUE KEY uq_blog_posts_slug (slug),
+          KEY idx_blog_posts_status_published (status, published_at)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
         'email_verifications' => "CREATE TABLE IF NOT EXISTS email_verifications (
           id              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
           user_id         BIGINT UNSIGNED   NOT NULL,
@@ -106,6 +124,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!column_exists('email_verifications', 'code_hash')) {
         db()->exec("ALTER TABLE email_verifications ADD COLUMN code_hash CHAR(64) NOT NULL AFTER token_hash");
         $log[] = 'Added column email_verifications.code_hash';
+    }
+
+    // donations.gateway_tx_id — makes donation confirmation idempotent (without it, a replayed
+    // confirmation call for the same real Stripe payment inflates a campaign's funds and re-sends
+    // the donor's receipt email every time).
+    if (!column_exists('donations', 'gateway_tx_id')) {
+        db()->exec("ALTER TABLE donations ADD COLUMN gateway_tx_id VARCHAR(255) NULL");
+        db()->exec("ALTER TABLE donations ADD UNIQUE KEY uq_donations_gateway_tx (gateway_tx_id)");
+        $log[] = 'Added column donations.gateway_tx_id (with unique index)';
     }
 
     // email templates for password reset / email verification

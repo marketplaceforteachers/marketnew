@@ -201,7 +201,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .icon-btn { position: relative; width: 2.2rem; height: 2.2rem; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; color: #cbd5e1; background: transparent; border: none; cursor: pointer; transition: background-color .12s var(--ease), color .12s var(--ease); }
 .icon-btn:hover { background: rgba(255,255,255,.08); color: #fff; }
 .icon-badge { position: absolute; top: -1px; right: -1px; background: var(--red-600); color: #fff; font-size: 10px; font-weight: 700; border-radius: 999px; min-width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; padding: 0 3px; box-shadow: 0 0 0 2px var(--royal-900); }
-.avatar-btn { width: 2.2rem; height: 2.2rem; border-radius: var(--radius-sm); background: var(--amber-600); color: #fff; font-weight: 700; font-size: .75rem; border: none; cursor: pointer; transition: background-color .12s var(--ease); }
+.avatar-btn { width: 2.2rem; height: 2.2rem; border-radius: var(--radius-sm); background: var(--amber-600); color: #fff; font-weight: 700; font-size: .75rem; border: none; cursor: pointer; transition: background-color .12s var(--ease); overflow: hidden; display: flex; align-items: center; justify-content: center; }
 .avatar-btn:hover { background: var(--amber-500); }
 .account-menu { position: relative; }
 .account-dropdown { position: absolute; right: 0; top: 2.7rem; width: 230px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-lg); padding: .35rem 0; z-index: 50; }
@@ -448,6 +448,19 @@ tbody tr:hover { background: var(--surface-2); }
 /* Progress bar */
 .progress-track { height: .5rem; background: var(--surface-2); border-radius: 999px; overflow: hidden; }
 .progress-fill { height: 100%; background: var(--emerald-500); border-radius: 999px; transition: width .3s var(--ease); }
+
+/* Blog article body — output of render_blog_markdown(), a small fixed set of tags */
+.blog-content h3 { font-size: 1.25rem; margin-top: 1.75rem; }
+.blog-content h4 { font-size: 1.05rem; margin-top: 1.5rem; }
+.blog-content p { margin-top: 1rem; }
+.blog-content p:first-child { margin-top: 0; }
+.blog-content ul { margin: 1rem 0 0; padding-left: 1.25rem; }
+.blog-content li { margin-top: .4rem; }
+.blog-content li:first-child { margin-top: 0; }
+.blog-content a { color: var(--royal-600); font-weight: 500; text-decoration: underline; text-underline-offset: 2px; }
+.blog-content a:hover { color: var(--royal-700); }
+.blog-content strong { font-weight: 700; }
+.blog-content img { max-width: 100%; height: auto; border-radius: .6rem; margin-top: 1rem; display: block; }
 
 /* Utility */
 .link { color: var(--royal-600); font-weight: 500; transition: color .12s var(--ease); }

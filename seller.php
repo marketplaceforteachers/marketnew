@@ -41,9 +41,13 @@ require __DIR__ . '/includes/layout_header.php';
 ?>
 <div class="container py-8">
   <div class="card card-pad flex gap-4" style="align-items:flex-start;flex-wrap:wrap;">
-    <span class="avatar-btn" style="width:4rem;height:4rem;font-size:1.5rem;border-radius:999px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
-      <?= e(strtoupper(substr($displayName, 0, 2))) ?>
-    </span>
+    <?php if ($seller['avatar_url']): ?>
+      <img src="<?= e($seller['avatar_url']) ?>" alt="" style="width:4rem;height:4rem;border-radius:999px;object-fit:cover;flex-shrink:0;">
+    <?php else: ?>
+      <span class="avatar-btn" style="width:4rem;height:4rem;font-size:1.5rem;border-radius:999px;flex-shrink:0;">
+        <?= e(strtoupper(substr($displayName, 0, 2))) ?>
+      </span>
+    <?php endif; ?>
     <div style="flex:1;min-width:12rem;">
       <div class="flex items-center gap-2" style="flex-wrap:wrap;">
         <h1 class="text-xl"><?= e($displayName) ?></h1>

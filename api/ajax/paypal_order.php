@@ -16,7 +16,7 @@ if (!$order || (int) $order['buyer_id'] !== (int) $me['id']) json_response(['err
 if ($order['status'] !== 'pending') json_response(['error' => 'Order is not awaiting payment'], 409);
 
 try {
-    $paypalOrder = paypal_create_order((float) $order['total_amount']);
+    $paypalOrder = paypal_create_order((float) $order['total_amount'], (string) $orderId);
     json_response(['paypalOrderId' => $paypalOrder['id']]);
 } catch (Exception $e) {
     json_response(['error' => $e->getMessage()], 503);

@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
   name            VARCHAR(120)      NOT NULL,
   first_name      VARCHAR(80),
   last_name       VARCHAR(80),
+  avatar_url      VARCHAR(500),
   email           VARCHAR(255)      NOT NULL,
   password_hash   VARCHAR(255)      NOT NULL,
   role            ENUM('teacher','buyer','admin') NOT NULL DEFAULT 'buyer',
@@ -246,9 +247,13 @@ CREATE TABLE IF NOT EXISTS donations (
   donor_email     VARCHAR(255),
   amount          DECIMAL(10,2)     NOT NULL,
   receipt_url     VARCHAR(500),
+  -- The Stripe payment intent id this donation was recorded from. Unique so a replayed/duplicate
+  -- confirmation call for the same real payment can't inflate current_funds or re-send receipts.
+  gateway_tx_id   VARCHAR(255)      NULL,
   created_at      TIMESTAMP         NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_donations_campaign FOREIGN KEY (campaign_id) REFERENCES fundraising_campaigns(id) ON DELETE CASCADE,
-  KEY idx_donations_campaign (campaign_id)
+  KEY idx_donations_campaign (campaign_id),
+  UNIQUE KEY uq_donations_gateway_tx (gateway_tx_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 13. message_threads & messages
@@ -393,6 +398,28 @@ CREATE TABLE IF NOT EXISTS integration_configs (
   integration_key VARCHAR(60)      NOT NULL PRIMARY KEY,
   config_json     JSON              NOT NULL,
   updated_at      TIMESTAMP         NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 20. blog_posts — manual + AI-drafted articles. `content` is markdown-lite plain text (not raw
+-- HTML — see render_blog_markdown() in includes/helpers.php), rendered through a small
+-- allowlist converter rather than stored/echoed as HTML, since AI-generated posts are drafted
+-- from external news content an attacker could plant prompt-injection text in.
+CREATE TABLE IF NOT EXISTS blog_posts (
+  id              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  title           VARCHAR(255)      NOT NULL,
+  slug            VARCHAR(255)      NOT NULL,
+  excerpt         VARCHAR(320),
+  content         MEDIUMTEXT        NOT NULL,
+  cover_image_url VARCHAR(500),
+  author_name     VARCHAR(150)      NOT NULL DEFAULT 'MarketplaceForTeachers.com Team',
+  status          ENUM('draft','published') NOT NULL DEFAULT 'draft',
+  source          ENUM('manual','ai_generated') NOT NULL DEFAULT 'manual',
+  source_url      VARCHAR(500),
+  published_at    TIMESTAMP         NULL,
+  created_at      TIMESTAMP         NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at      TIMESTAMP         NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_blog_posts_slug (slug),
+  KEY idx_blog_posts_status_published (status, published_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 SET FOREIGN_KEY_CHECKS = 1;

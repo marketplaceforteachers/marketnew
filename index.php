@@ -2,8 +2,11 @@
 require_once __DIR__ . '/includes/bootstrap.php';
 
 $homepage = get_setting('homepage');
-$page_title = 'Home';
+$page_title = 'Buy, Sell & Exchange Classroom Supplies';
 $page_description = $homepage['heroSubtext'];
+// Force / and /index.php (and www vs. bare domain) to the same canonical URL so they're never
+// indexed as duplicates.
+$page_canonical = site_origin() . '/';
 require __DIR__ . '/includes/layout_header.php';
 
 $categories = db()->query(

@@ -12,7 +12,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && post('action') === 'review') {
     $stmt = db()->prepare('SELECT buyer_id, status FROM orders WHERE id = ?');
     $stmt->execute([$orderId]);
     $order = $stmt->fetch();
-    if ($order && (int) $order['buyer_id'] === (int) $me['id'] && in_array($order['status'], ['paid', 'shipped', 'delivered', 'completed'], true)) {
+    // $sellerId comes from the client — without checking it's actually a seller in THIS order,
+    // anyone with one paid order (even a free/$0 one) could post a review against any seller on
+    // the site, no real transaction with them required.
+    $stmt = db()->prepare('SELECT 1 FROM order_items WHERE order_id = ? AND seller_id = ? LIMIT 1');
+    $stmt->execute([$orderId, $sellerId]);
+    $sellerIsInOrder = (bool) $stmt->fetchColumn();
+    if ($order && $sellerIsInOrder && (int) $order['buyer_id'] === (int) $me['id'] && in_array($order['status'], ['paid', 'shipped', 'delivered', 'completed'], true)) {
         db()->prepare('INSERT INTO reviews (order_id, reviewer_id, seller_id, rating, comment) VALUES (?, ?, ?, ?, ?)')
             ->execute([$orderId, $me['id'], $sellerId, $rating, $comment]);
         flash('success', 'Review submitted — thank you!');

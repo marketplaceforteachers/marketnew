@@ -13,6 +13,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->execute([$id]);
     $dispute = $stmt->fetch();
 
+    if ($dispute && $dispute['status'] === 'resolved') {
+        flash('error', 'This dispute has already been resolved.');
+        redirect('/admin/disputes.php');
+    }
+
     if ($dispute) {
         try {
             if ($resolution === 'full_refund') {

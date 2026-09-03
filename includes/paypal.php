@@ -70,11 +70,18 @@ function paypal_client_id(): string
     return get_gateway('paypal')['config']['clientId'] ?? '';
 }
 
-function paypal_create_order(float $amount, string $currency = 'USD'): array
+/**
+ * $customId ties the PayPal order back to our internal order id, server-side, the same way
+ * stripe_create_payment_intent() embeds orderId in Stripe's metadata — so paypal_capture.php can
+ * derive which order was actually paid (and for how much) from PayPal's own authoritative
+ * response instead of trusting a client-supplied orderId at capture time.
+ */
+function paypal_create_order(float $amount, string $customId, string $currency = 'USD'): array
 {
     return paypal_request('POST', '/v2/checkout/orders', [
         'intent' => 'CAPTURE',
         'purchase_units' => [[
+            'custom_id' => $customId,
             'amount' => ['currency_code' => $currency, 'value' => number_format($amount, 2, '.', '')],
         ]],
     ]);
@@ -83,6 +90,19 @@ function paypal_create_order(float $amount, string $currency = 'USD'): array
 function paypal_capture_order(string $paypalOrderId): array
 {
     return paypal_request('POST', "/v2/checkout/orders/$paypalOrderId/capture");
+}
+
+/** Pulls the custom_id (our internal order id) and actually-captured amount back out of a
+ *  capture response — both are PayPal-authoritative, not client-supplied. */
+function paypal_extract_capture(array $capture): array
+{
+    $purchaseUnit = $capture['purchase_units'][0] ?? [];
+    $captureRecord = $purchaseUnit['payments']['captures'][0] ?? [];
+    return [
+        'captureId' => $captureRecord['id'] ?? null,
+        'customId' => $captureRecord['custom_id'] ?? $purchaseUnit['custom_id'] ?? null,
+        'amount' => isset($captureRecord['amount']['value']) ? (float) $captureRecord['amount']['value'] : null,
+    ];
 }
 
 function paypal_refund_capture(string $captureId, ?float $amount = null): array

@@ -4,7 +4,15 @@ $id = (int) param('id');
 $stmt = db()->prepare("SELECT c.*, u.name AS teacher_name FROM fundraising_campaigns c JOIN users u ON u.id = c.teacher_id WHERE c.id = ?");
 $stmt->execute([$id]);
 $campaign = $stmt->fetch();
-if (!$campaign) { http_response_code(404); die('Campaign not found'); }
+if (!$campaign) {
+    http_response_code(404);
+    $page_title = 'Not Found';
+    $page_noindex = true;
+    require __DIR__ . '/includes/layout_header.php';
+    echo '<div class="container py-10 text-center"><p>Campaign not found.</p></div>';
+    require __DIR__ . '/includes/layout_footer.php';
+    exit;
+}
 
 $stmt = db()->prepare('SELECT donor_name, amount, created_at FROM donations WHERE campaign_id = ? ORDER BY created_at DESC LIMIT 50');
 $stmt->execute([$id]);
@@ -13,6 +21,7 @@ $donations = $stmt->fetchAll();
 $stripeGateway = get_gateway('stripe');
 $pct = $campaign['target_funds'] > 0 ? min(100, round($campaign['current_funds'] / $campaign['target_funds'] * 100)) : 0;
 $page_title = $campaign['title'];
+$page_description = $campaign['story'] ? truncate($campaign['story'], 160) : ($campaign['teacher_name'] . "'s classroom fundraising campaign on " . get_setting('branding')['siteName'] . '.');
 require __DIR__ . '/includes/layout_header.php';
 ?>
 <div class="container-sm py-8">

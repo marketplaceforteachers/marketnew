@@ -1,0 +1,16 @@
+# Defense-in-depth: this directory only ever holds re-encoded JPEGs written by
+# includes/uploads.php (see that file for why arbitrary PHP ending up here shouldn't be
+# possible in the first place), but never let anything in it execute, just in case.
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+<FilesMatch "\.(php|phtml|php\d|pht|phar|cgi|pl)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order deny,allow
+        Deny from all
+    </IfModule>
+</FilesMatch>
+Options -Indexes -ExecCGI

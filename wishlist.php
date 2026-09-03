@@ -4,7 +4,15 @@ $id = (int) param('id');
 $stmt = db()->prepare("SELECT w.*, u.name AS teacher_name FROM wishlists w JOIN users u ON u.id = w.teacher_id WHERE w.id = ?");
 $stmt->execute([$id]);
 $wishlist = $stmt->fetch();
-if (!$wishlist) { http_response_code(404); die('Wishlist not found'); }
+if (!$wishlist) {
+    http_response_code(404);
+    $page_title = 'Not Found';
+    $page_noindex = true;
+    require __DIR__ . '/includes/layout_header.php';
+    echo '<div class="container py-10 text-center"><p>Wishlist not found.</p></div>';
+    require __DIR__ . '/includes/layout_footer.php';
+    exit;
+}
 
 $stmt = db()->prepare('SELECT * FROM wishlist_items WHERE wishlist_id = ?');
 $stmt->execute([$id]);
@@ -12,6 +20,7 @@ $items = $stmt->fetchAll();
 
 $pct = $wishlist['goal_amount'] > 0 ? min(100, round($wishlist['raised_amount'] / $wishlist['goal_amount'] * 100)) : 0;
 $page_title = $wishlist['title'];
+$page_description = $wishlist['teacher_name'] . "'s classroom wishlist" . ($wishlist['school'] ? ' at ' . $wishlist['school'] : '') . ' — help fund supplies for their students.';
 require __DIR__ . '/includes/layout_header.php';
 ?>
 <div class="container-sm py-8">

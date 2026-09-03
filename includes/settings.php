@@ -15,6 +15,7 @@ function default_settings(): array
         'header' => [
             'primaryNav' => [
                 ['label' => 'Browse All', 'href' => '/browse.php'],
+                ['label' => 'Blog', 'href' => '/blog.php'],
                 ['label' => 'How It Works', 'href' => '/how-it-works.php'],
                 ['label' => 'Fundraising & Wishlists', 'href' => '/wishlists.php'],
                 ['label' => 'Sell for Free', 'href' => '/post-listing.php'],
@@ -251,6 +252,40 @@ function set_smtp_config(array $config): void
     $json = json_encode($config, JSON_INVALID_UTF8_SUBSTITUTE);
     $stmt = db()->prepare(
         "INSERT INTO integration_configs (integration_key, config_json) VALUES ('smtp', ?)
+         ON DUPLICATE KEY UPDATE config_json = VALUES(config_json)"
+    );
+    $stmt->execute([$json]);
+}
+
+// --- Non-payment integrations (Anthropic — powers the blog auto-writer) ---
+
+function default_anthropic_config(): array
+{
+    return [
+        'apiKey' => '',
+        'isEnabled' => false,
+        'model' => 'claude-sonnet-5',
+        'topics' => 'K-12 classroom teaching, education policy, teacher supplies and budgets',
+    ];
+}
+
+function get_anthropic_config(): array
+{
+    $stmt = db()->prepare("SELECT config_json FROM integration_configs WHERE integration_key = 'anthropic'");
+    $stmt->execute();
+    $row = $stmt->fetch();
+    $defaults = default_anthropic_config();
+    if (!$row) {
+        return $defaults;
+    }
+    return array_merge($defaults, json_decode($row['config_json'], true) ?? []);
+}
+
+function set_anthropic_config(array $config): void
+{
+    $json = json_encode($config, JSON_INVALID_UTF8_SUBSTITUTE);
+    $stmt = db()->prepare(
+        "INSERT INTO integration_configs (integration_key, config_json) VALUES ('anthropic', ?)
          ON DUPLICATE KEY UPDATE config_json = VALUES(config_json)"
     );
     $stmt->execute([$json]);

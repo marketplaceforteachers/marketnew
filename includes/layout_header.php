@@ -8,7 +8,36 @@ $me = current_user();
 $flashes = get_flashes();
 $pageTitle = isset($page_title) ? $page_title . ' — ' . $branding['siteName'] : $branding['siteName'];
 $pageDescription = $page_description ?? $branding['tagline'];
-$pageUrl = 'https://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . ($_SERVER['REQUEST_URI'] ?? '/');
+$pageUrl = $page_canonical ?? build_canonical_url();
+
+// Sitewide Organization schema, plus a WebSite schema with a sitelinks search box (homepage only,
+// per Google's guidance) — everything else is page-specific via $page_jsonld.
+$siteOrigin = site_origin();
+$footerForSchema = $settings['footer'];
+$organizationSchema = [
+    '@context' => 'https://schema.org',
+    '@type' => 'Organization',
+    'name' => $branding['siteName'],
+    'url' => $siteOrigin . '/',
+    'description' => $footerForSchema['description'] ?? $branding['tagline'],
+    'email' => $footerForSchema['supportEmail'] ?? null,
+    'telephone' => $footerForSchema['phone'] ?? null,
+];
+$organizationSchema = array_filter($organizationSchema, fn($v) => $v !== null && $v !== '');
+$siteSchemas = [$organizationSchema];
+if (($_SERVER['REQUEST_URI'] ?? '') === '/' || basename($_SERVER['SCRIPT_NAME'] ?? '') === 'index.php') {
+    $siteSchemas[] = [
+        '@context' => 'https://schema.org',
+        '@type' => 'WebSite',
+        'name' => $branding['siteName'],
+        'url' => $siteOrigin . '/',
+        'potentialAction' => [
+            '@type' => 'SearchAction',
+            'target' => ['@type' => 'EntryPoint', 'urlTemplate' => $siteOrigin . '/browse.php?q={search_term_string}'],
+            'query-input' => 'required name=search_term_string',
+        ],
+    ];
+}
 ?>
 <!doctype html>
 <html lang="en">
@@ -17,16 +46,21 @@ $pageUrl = 'https://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . ($_SERVER['REQU
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?= e($pageTitle) ?></title>
 <meta name="description" content="<?= e($pageDescription) ?>">
+<meta name="robots" content="<?= !empty($page_noindex) ? 'noindex,follow' : 'index,follow' ?>">
 <link rel="canonical" href="<?= e($pageUrl) ?>">
 <meta property="og:type" content="website">
 <meta property="og:title" content="<?= e($pageTitle) ?>">
 <meta property="og:description" content="<?= e($pageDescription) ?>">
 <meta property="og:url" content="<?= e($pageUrl) ?>">
 <meta property="og:site_name" content="<?= e($branding['siteName']) ?>">
-<?php if (!empty($page_image)): ?><meta property="og:image" content="<?= e($page_image) ?>"><meta name="twitter:card" content="summary_large_image"><?php endif; ?>
+<meta name="twitter:card" content="<?= !empty($page_image) ? 'summary_large_image' : 'summary' ?>">
+<meta name="twitter:title" content="<?= e($pageTitle) ?>">
+<meta name="twitter:description" content="<?= e($pageDescription) ?>">
+<?php if (!empty($page_image)): ?><meta property="og:image" content="<?= e($page_image) ?>"><meta name="twitter:image" content="<?= e($page_image) ?>"><?php endif; ?>
 <link rel="icon" type="image/svg+xml" href="/assets/img/favicon.svg">
 <link rel="stylesheet" href="/assets/css/style.css">
 <style>:root{--accent:<?= e($branding['accentColor']) ?>;}</style>
+<?php foreach (array_merge($siteSchemas, $page_jsonld ?? []) as $schema): ?><script type="application/ld+json"><?= json_encode_for_script($schema) ?></script><?php endforeach; ?>
 </head>
 <body>
 <header class="site-header">
@@ -51,7 +85,11 @@ $pageUrl = 'https://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . ($_SERVER['REQU
       <?php if ($me): ?>
         <div class="account-menu">
           <button type="button" class="avatar-btn" onclick="document.getElementById('account-dropdown').classList.toggle('hidden')">
-            <?= e(strtoupper(substr($me['name'], 0, 2))) ?>
+            <?php if ($me['avatar_url']): ?>
+              <img src="<?= e($me['avatar_url']) ?>" alt="" style="width:100%;height:100%;border-radius:inherit;object-fit:cover;">
+            <?php else: ?>
+              <?= e(strtoupper(substr($me['name'], 0, 2))) ?>
+            <?php endif; ?>
           </button>
           <div class="account-dropdown hidden" id="account-dropdown">
             <p class="text-xs text-muted" style="padding:.4rem .9rem;"><?= e($me['email']) ?></p>

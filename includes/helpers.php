@@ -6,6 +6,22 @@ function redirect(string $path): void
     exit;
 }
 
+/**
+ * Validates a redirect target is a same-site path before it's ever used with redirect() — must
+ * start with exactly one "/" (rejects "//evil.com" and "/\evil.com", both of which browsers
+ * treat as protocol-relative to another host) and contain no scheme. Used wherever a redirect
+ * destination comes from user input (e.g. login.php's ?redirect=) so a crafted link can't send a
+ * freshly-authenticated user to an attacker's domain right after login.
+ */
+function safe_local_redirect_path(?string $path, string $default = '/index.php'): string
+{
+    $path = (string) $path;
+    if ($path === '' || $path[0] !== '/' || str_starts_with($path, '//') || str_starts_with($path, '/\\') || str_contains($path, ':')) {
+        return $default;
+    }
+    return $path;
+}
+
 function e(?string $value): string
 {
     return htmlspecialchars($value ?? '', ENT_QUOTES, 'UTF-8');
@@ -14,6 +30,61 @@ function e(?string $value): string
 function money(float $amount): string
 {
     return '$' . number_format($amount, 2);
+}
+
+/**
+ * json_encode() for embedding inside a <script> tag. Plain json_encode() with
+ * JSON_UNESCAPED_SLASHES leaves "/" unescaped, so attacker-controlled string fields (e.g. a
+ * listing title) containing "</script><script>...</script>" break out of the JSON-LD block and
+ * execute as HTML/JS — a real stored-XSS path, not a theoretical one. Escaping forward slashes
+ * back (undoing JSON_UNESCAPED_SLASHES) is the standard mitigation; also escaping U+2028/U+2029
+ * avoids a separate, older line-terminator parsing quirk in some JS engines.
+ */
+function json_encode_for_script($value): string
+{
+    $json = json_encode($value, JSON_UNESCAPED_UNICODE);
+    return str_replace(["\u{2028}", "\u{2029}"], [' ', ' '], $json);
+}
+
+/**
+ * The one canonical "https://host[:port]" for this site, derived from the configured APP_URL
+ * rather than the incoming Host header — so whichever hostname a visitor actually used (e.g.
+ * www vs. bare domain, both of which currently serve identical content unredirected), every
+ * canonical tag, JSON-LD url, and breadcrumb link site-wide still points at the one configured
+ * domain instead of echoing back whatever they typed. Falls back to the request's own host only
+ * if APP_URL isn't set yet (e.g. install.php, before config.php exists).
+ */
+function site_origin(): string
+{
+    if (defined('APP_URL')) {
+        $host = parse_url(APP_URL, PHP_URL_HOST);
+        $port = parse_url(APP_URL, PHP_URL_PORT);
+        if ($host) {
+            return 'https://' . $host . ($port ? ':' . $port : '');
+        }
+    }
+    return 'https://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
+}
+
+/**
+ * Builds a canonical URL for the current request, always on the one configured host (see
+ * site_origin()) and with volatile, content-preserving query params (sort order etc.) stripped
+ * and the rest alphabetized — so e.g. ?category=math&sort=price_asc and
+ * ?sort=newest&category=math canonicalize to the same URL instead of Google treating every sort
+ * permutation as a distinct page.
+ */
+function build_canonical_url(array $stripParams = ['sort']): string
+{
+    $requestUri = $_SERVER['REQUEST_URI'] ?? '/';
+    $path = parse_url($requestUri, PHP_URL_PATH) ?: '/';
+    $query = [];
+    parse_str((string) parse_url($requestUri, PHP_URL_QUERY), $query);
+    foreach ($stripParams as $p) {
+        unset($query[$p]);
+    }
+    ksort($query);
+    $qs = http_build_query($query);
+    return site_origin() . $path . ($qs !== '' ? '?' . $qs : '');
 }
 
 /** Truncates a string to $length bytes with an ellipsis, without depending on ext-mbstring. */
@@ -31,6 +102,77 @@ function slugify(string $text): string
     $slug = preg_replace('/[^a-z0-9]+/', '-', $slug);
     $slug = trim($slug, '-');
     return $slug . '-' . base_convert((string) time(), 10, 36);
+}
+
+/**
+ * Renders blog_posts.content (plain markdown-lite text — NOT stored/trusted as HTML) into safe
+ * HTML. Deliberately not "sanitize HTML input" (e.g. strip_tags on a raw-HTML source) — that
+ * approach still lets dangerous attributes through on whatever tags survive. Instead: escape the
+ * ENTIRE input first (so no literal tag in the source, prompt-injected or typed, ever reaches the
+ * page as markup), then this function is the only thing that ever introduces real tags, and it
+ * fully controls every tag/attribute it writes. This matters specifically because post content
+ * can come from an automated pipeline that feeds external news text into an LLM — a bad actor
+ * could plant text in a news source designed to make the model emit HTML/script, and drafts are
+ * viewed by an admin (a high-value target) before anything is public.
+ *
+ * Supported syntax: blank-line paragraphs, "## "/"### " headings, "- " bullet lists, **bold**,
+ * *italic*, [text](url) links, and ![alt text](url) images (http/https only for both — anything
+ * else silently drops the link/image and keeps just the text).
+ */
+function render_blog_markdown(string $raw): string
+{
+    $escaped = e($raw);
+    $inline = function (string $text): string {
+        $text = preg_replace('/\*\*(.+?)\*\*/s', '<strong>$1</strong>', $text);
+        $text = preg_replace('/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/s', '<em>$1</em>', $text);
+        // Images before links — "![alt](url)" would otherwise partially match the link pattern
+        // below (on the "[alt](url)" part), leaving a stray "!" in front of an <a> tag.
+        $text = preg_replace_callback('/!\[([^\[\]]*)\]\(([^()\s]+)\)/', function ($m) {
+            $url = $m[2];
+            if (!preg_match('#^https?://#i', $url)) {
+                return ''; // unsupported scheme — drop it entirely, there's no useful fallback text for an image
+            }
+            return '<img src="' . $url . '" alt="' . $m[1] . '" loading="lazy">';
+        }, $text);
+        $text = preg_replace_callback('/\[([^\[\]]+)\]\(([^()\s]+)\)/', function ($m) {
+            $url = $m[2];
+            if (!preg_match('#^https?://#i', $url)) {
+                return $m[1]; // unsupported scheme — keep the link text, drop the link itself
+            }
+            return '<a href="' . $url . '" rel="noopener noreferrer" target="_blank">' . $m[1] . '</a>';
+        }, $text);
+        return $text;
+    };
+
+    $blocks = preg_split('/\n{2,}/', trim($escaped));
+    $html = [];
+    foreach ($blocks as $block) {
+        $block = trim($block);
+        if ($block === '') continue;
+        if (preg_match('/^###\s+(.+)$/', $block, $m)) {
+            $html[] = '<h4>' . $inline(trim($m[1])) . '</h4>';
+        } elseif (preg_match('/^##\s+(.+)$/', $block, $m)) {
+            $html[] = '<h3>' . $inline(trim($m[1])) . '</h3>';
+        } else {
+            $lines = preg_split('/\n/', $block);
+            $isList = $lines && array_reduce($lines, fn($ok, $l) => $ok && preg_match('/^-\s+/', trim($l)), true);
+            if ($isList) {
+                $items = array_map(fn($l) => '<li>' . $inline(preg_replace('/^-\s+/', '', trim($l))) . '</li>', $lines);
+                $html[] = '<ul>' . implode('', $items) . '</ul>';
+            } else {
+                $html[] = '<p>' . $inline(nl2br($block, false)) . '</p>';
+            }
+        }
+    }
+    return implode("\n", $html);
+}
+
+/** Strips markup back out of rendered blog content for use in meta descriptions/JSON-LD. */
+function blog_plain_excerpt(string $raw, int $length = 160): string
+{
+    $plain = preg_replace('/[#*_\[\]()]/', '', $raw);
+    $plain = preg_replace('/\s+/', ' ', trim($plain));
+    return truncate($plain, $length);
 }
 
 function csrf_token(): string

@@ -16,6 +16,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         log_admin_action($me['id'], 'user.update', 'users', $id);
     } elseif (post('action') === 'toggle_banned') {
         db()->prepare('UPDATE users SET is_banned = NOT is_banned WHERE id = ?')->execute([$id]);
+        $stmt = db()->prepare('SELECT is_banned FROM users WHERE id = ?');
+        $stmt->execute([$id]);
+        // Banning a seller previously left their existing listings fully active and purchasable —
+        // real payment, real payout generated for a banned account. Cascade-deactivate on ban;
+        // deliberately does NOT auto-reactivate on unban (an admin un-banning someone shouldn't
+        // silently re-list everything they had — items may be stale, sold elsewhere, etc.).
+        if ((bool) $stmt->fetchColumn()) {
+            db()->prepare("UPDATE listings SET is_active = 0 WHERE seller_id = ? AND is_active = 1")->execute([$id]);
+        }
         log_admin_action($me['id'], 'user.update', 'users', $id);
     } elseif (post('action') === 'delete') {
         if ($id === (int) $me['id']) {

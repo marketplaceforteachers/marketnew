@@ -5,3 +5,11 @@ config.php
 .DS_Store
 Thumbs.db
 *.swp
+
+# User-uploaded images (avatars, blog) — real content only ever exists on the live server,
+# never in the repo. .htaccess/.gitkeep are tracked so the directories and their protection
+# ship with a fresh checkout; the images themselves are not.
+uploads/avatars/*
+!uploads/avatars/.gitkeep
+uploads/blog/*
+!uploads/blog/.gitkeep

@@ -12,6 +12,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $payout = $stmt->fetch();
         if (!$payout) {
             flash('error', 'Payout not found');
+        } elseif ($payout['status'] !== 'pending') {
+            // Guards against a double-click or two concurrent admin requests triggering a second
+            // real Stripe transfer for a payout that's already been sent.
+            flash('error', 'This payout has already been ' . $payout['status'] . '.');
         } elseif (!$payout['stripe_account_id']) {
             flash('error', 'Seller has not connected a Stripe account yet.');
         } else {
