@@ -267,8 +267,18 @@ a.card:hover, .card.hoverable:hover { box-shadow: var(--shadow-md); border-color
 .price { font-size: 1.15rem; font-weight: 700; letter-spacing: -.01em; }
 
 /* Homepage section bands — a soft tinted strip separates "Shop by Category" from the sections
-   above/below it; white cards pop up out of the tint, with a filled icon badge on hover. */
-.section-band { background: var(--surface-2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+   above/below it; white cards pop up out of the tint, with a filled icon badge on hover.
+   Faint layered color washes echo the hero's glow treatment, scaled down for a light surface. */
+.section-band {
+  position: relative; overflow: hidden;
+  background:
+    radial-gradient(ellipse 700px 500px at 0% 15%, rgba(37,99,235,.20), transparent 65%),
+    radial-gradient(ellipse 600px 460px at 100% 85%, rgba(245,158,11,.20), transparent 65%),
+    radial-gradient(ellipse 500px 400px at 60% 45%, rgba(124,58,237,.12), transparent 65%),
+    var(--surface-2);
+  border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+}
+.section-band > .container { position: relative; }
 .section-eyebrow { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--royal-600); }
 .category-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; }
 @media (max-width: 900px) { .category-grid { grid-template-columns: repeat(3, 1fr); } }
