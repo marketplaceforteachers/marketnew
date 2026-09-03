@@ -110,7 +110,7 @@ $moreCategoriesCount = max(0, count($categories) - $categoryLimit);
 </section>
 <?php endif; ?>
 
-<section class="py-8">
+<section class="section-tint py-8">
   <div class="container">
     <div class="flex justify-between items-center">
       <div>
@@ -122,7 +122,7 @@ $moreCategoriesCount = max(0, count($categories) - $categoryLimit);
     <?php if (!$listings): ?>
       <p class="text-sm text-muted mt-4">No listings yet — be the first to post one.</p>
     <?php endif; ?>
-    <div class="grid grid-4 mt-4">
+    <div class="listing-grid mt-4">
       <?php foreach ($listings as $l): include __DIR__ . '/includes/partials/listing_card.php'; endforeach; ?>
     </div>
   </div>

@@ -75,7 +75,7 @@ require __DIR__ . '/includes/layout_header.php';
     <?php if (!$listings): ?>
       <p class="text-sm text-muted mt-3">This seller doesn't have any active listings right now.</p>
     <?php endif; ?>
-    <div class="grid grid-4 mt-4">
+    <div class="listing-grid mt-4">
       <?php foreach ($listings as $l): include __DIR__ . '/includes/partials/listing_card.php'; endforeach; ?>
     </div>
   </div>

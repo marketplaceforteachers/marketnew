@@ -109,7 +109,7 @@ $conditionOptions = ['new' => 'New', 'like_new' => 'Like New', 'good' => 'Good',
       <?php if (!$listings): ?>
         <p class="text-sm text-muted">No listings match these filters yet.</p>
       <?php endif; ?>
-      <div class="grid grid-3">
+      <div class="listing-grid">
         <?php foreach ($listings as $l): $l['seller_verified'] = $l['seller_verified']; include __DIR__ . '/includes/partials/listing_card.php'; endforeach; ?>
       </div>
     </div>

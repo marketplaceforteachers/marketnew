@@ -18,7 +18,7 @@ $cartPayload = json_encode([
     <?php if ($l['primary_image']): ?>
       <img src="<?= e($l['primary_image']) ?>" alt="<?= e($l['title']) ?>">
     <?php else: ?>
-      <span class="listing-img-placeholder"><?= icon('image') ?></span>
+      <span class="listing-img-placeholder"><span class="ph-badge"><?= icon('image') ?></span></span>
     <?php endif; ?>
     <?php if ($l['seller_verified']): ?>
       <span class="chip chip-emerald"><?= icon('shield') ?> Verified Teacher</span>
