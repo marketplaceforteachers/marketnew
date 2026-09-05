@@ -22,8 +22,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $accountTypeOptions = $role === 'teacher'
             ? ['teacher', 'educator', 'school']
             : ['parent', 'donor', 'other'];
+        $submittedAccountType = $role === 'teacher' ? post('account_type_teacher') : post('account_type_buyer');
         $profile = [
-            'account_type' => in_array(post('account_type'), $accountTypeOptions, true) ? post('account_type') : null,
+            'account_type' => in_array($submittedAccountType, $accountTypeOptions, true) ? $submittedAccountType : null,
             'phone' => trim(post('phone')) ?: null,
             'zip_code' => trim(post('zip_code')) ?: null,
             'school_name' => trim(post('school_name')) ?: null,
@@ -33,6 +34,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ];
         if (strlen($firstName) < 1 || strlen($lastName) < 1) {
             $error = 'First and last name are required.';
+        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $error = 'Please enter a valid email address.';
         } elseif (strlen($password) < 8) {
             $error = 'Password must be at least 8 characters.';
         } elseif (!trim(post('phone'))) {
@@ -88,18 +91,18 @@ require __DIR__ . '/includes/layout_header.php';
       <?= csrf_field() ?>
       <input type="hidden" name="mode" value="<?= e($mode) ?>">
       <input type="hidden" name="redirect_to" value="<?= e($redirectTo) ?>">
-      <?php if ($mode === 'register'): ?>
+      <?php if ($mode === 'register'): $oldRole = post('role') ?: 'teacher'; ?>
         <div class="grid grid-2">
-          <div class="field"><label>First Name</label><input type="text" name="first_name" required></div>
-          <div class="field"><label>Last Name</label><input type="text" name="last_name" required></div>
+          <div class="field"><label>First Name</label><input type="text" name="first_name" required value="<?= old('first_name') ?>"></div>
+          <div class="field"><label>Last Name</label><input type="text" name="last_name" required value="<?= old('last_name') ?>"></div>
         </div>
       <?php endif; ?>
-      <div class="field"><label>Email</label><input type="email" name="email" required></div>
+      <div class="field"><label>Email</label><input type="email" name="email" required value="<?= old('email') ?>"></div>
       <div class="field"><label>Password</label><input type="password" name="password" required minlength="8"></div>
       <?php if ($mode === 'register'): ?>
         <div class="grid grid-2">
-          <div class="field"><label>Phone Number</label><input type="tel" name="phone" required></div>
-          <div class="field"><label>ZIP / Postal Code</label><input type="text" name="zip_code" required></div>
+          <div class="field"><label>Phone Number</label><input type="tel" name="phone" required value="<?= old('phone') ?>"></div>
+          <div class="field"><label>ZIP / Postal Code</label><input type="text" name="zip_code" required value="<?= old('zip_code') ?>"></div>
         </div>
         <div class="field">
           <label>I am a…</label>
@@ -108,32 +111,32 @@ require __DIR__ . '/includes/layout_header.php';
             document.getElementById('account-type-teacher').classList.toggle('hidden', this.value !== 'teacher');
             document.getElementById('account-type-buyer').classList.toggle('hidden', this.value === 'teacher');
           ">
-            <option value="teacher">Teacher (selling &amp; buying)</option>
-            <option value="buyer">Buyer / Parent / Donor</option>
+            <option value="teacher" <?= $oldRole === 'teacher' ? 'selected' : '' ?>>Teacher (selling &amp; buying)</option>
+            <option value="buyer" <?= $oldRole === 'buyer' ? 'selected' : '' ?>>Buyer / Parent / Donor</option>
           </select>
         </div>
-        <div class="field" id="account-type-teacher">
+        <div class="field <?= $oldRole === 'teacher' ? '' : 'hidden' ?>" id="account-type-teacher">
           <label>Account Type</label>
-          <select name="account_type">
-            <option value="teacher">Teacher</option>
-            <option value="educator">Educator (non-classroom)</option>
-            <option value="school">School / Institution</option>
+          <select name="account_type_teacher">
+            <option value="teacher" <?= old('account_type_teacher') === 'teacher' ? 'selected' : '' ?>>Teacher</option>
+            <option value="educator" <?= old('account_type_teacher') === 'educator' ? 'selected' : '' ?>>Educator (non-classroom)</option>
+            <option value="school" <?= old('account_type_teacher') === 'school' ? 'selected' : '' ?>>School / Institution</option>
           </select>
         </div>
-        <div class="field hidden" id="account-type-buyer">
+        <div class="field <?= $oldRole === 'buyer' ? '' : 'hidden' ?>" id="account-type-buyer">
           <label>Account Type</label>
-          <select name="account_type">
-            <option value="parent">Parent</option>
-            <option value="donor">Donor</option>
-            <option value="other">Other</option>
+          <select name="account_type_buyer">
+            <option value="parent" <?= old('account_type_buyer') === 'parent' ? 'selected' : '' ?>>Parent</option>
+            <option value="donor" <?= old('account_type_buyer') === 'donor' ? 'selected' : '' ?>>Donor</option>
+            <option value="other" <?= old('account_type_buyer') === 'other' ? 'selected' : '' ?>>Other</option>
           </select>
         </div>
-        <div id="teacher-fields">
-          <div class="field"><label>School or District Name</label><input type="text" name="school_name" placeholder="e.g. Pennsylvania Elementary"></div>
-          <div class="field"><label>School/District Email <span class="text-muted" style="text-transform:none;font-weight:400;">(for verification, optional)</span></label><input type="email" name="school_email" placeholder="you@yourschool.edu"></div>
+        <div id="teacher-fields" class="<?= $oldRole === 'teacher' ? '' : 'hidden' ?>">
+          <div class="field"><label>School or District Name</label><input type="text" name="school_name" placeholder="e.g. Pennsylvania Elementary" value="<?= old('school_name') ?>"></div>
+          <div class="field"><label>School/District Email <span class="text-muted" style="text-transform:none;font-weight:400;">(for verification, optional)</span></label><input type="email" name="school_email" placeholder="you@yourschool.edu" value="<?= old('school_email') ?>"></div>
           <div class="grid grid-2">
-            <div class="field"><label>District</label><input type="text" name="district" placeholder="e.g. Oklahoma City Public Schools"></div>
-            <div class="field"><label>State</label><input type="text" name="state" maxlength="2" placeholder="OK" style="text-transform:uppercase;"></div>
+            <div class="field"><label>District</label><input type="text" name="district" placeholder="e.g. Oklahoma City Public Schools" value="<?= old('district') ?>"></div>
+            <div class="field"><label>State</label><input type="text" name="state" maxlength="2" placeholder="OK" style="text-transform:uppercase;" value="<?= old('state') ?>"></div>
           </div>
         </div>
       <?php endif; ?>

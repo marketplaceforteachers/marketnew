@@ -187,16 +187,27 @@ function register_user(string $firstName, string $lastName, string $email, strin
         'INSERT INTO users (name, first_name, last_name, email, password_hash, role, account_type, phone, zip_code, school_name, school_email, district, state)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     );
-    $stmt->execute([
-        $name, $firstName, $lastName, $email, $hash, $role,
-        $profile['account_type'] ?? null,
-        $profile['phone'] ?? null,
-        $profile['zip_code'] ?? null,
-        $profile['school_name'] ?? null,
-        $profile['school_email'] ?? null,
-        $profile['district'] ?? null,
-        $profile['state'] ?? null,
-    ]);
+    try {
+        $stmt->execute([
+            $name, $firstName, $lastName, $email, $hash, $role,
+            $profile['account_type'] ?? null,
+            $profile['phone'] ?? null,
+            $profile['zip_code'] ?? null,
+            $profile['school_name'] ?? null,
+            $profile['school_email'] ?? null,
+            $profile['district'] ?? null,
+            $profile['state'] ?? null,
+        ]);
+    } catch (PDOException $e) {
+        // The SELECT above is only a courtesy check — it can't see another request's not-yet-
+        // committed insert, so a double-click / accidental double-submit of the signup form can
+        // still race both past it. Without this, the second request's uq_users_email violation
+        // was an uncaught fatal error — a blank page instead of "that email is already in use."
+        if ((string) $e->getCode() === '23000') {
+            return null;
+        }
+        throw $e;
+    }
     $userId = (int) db()->lastInsertId();
     login_user($userId);
 

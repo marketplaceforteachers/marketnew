@@ -209,8 +209,19 @@ function get_flashes(): array
     return $flashes;
 }
 
+/**
+ * Repopulates a form field after a validation error. Every form that uses this (login.php's
+ * register form, post-listing.php) re-renders inline in the same request on failure rather than
+ * redirecting, so $_POST is what's actually available — check it first. The $_SESSION['old']
+ * path is kept for a hypothetical redirect-based flow (set via set_old()), but nothing in this
+ * codebase currently uses that path; without the $_POST fallback, old() always silently returned
+ * $default, and every one of these forms wiped itself blank on the first validation error.
+ */
 function old(string $key, string $default = ''): string
 {
+    if (isset($_POST[$key])) {
+        return e((string) $_POST[$key]);
+    }
     return e($_SESSION['old'][$key] ?? $default);
 }
 
