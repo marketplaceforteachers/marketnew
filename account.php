@@ -2,6 +2,9 @@
 require_once __DIR__ . '/includes/bootstrap.php';
 require_once __DIR__ . '/includes/uploads.php';
 $me = require_auth();
+if ($me['role'] !== 'admin' && !$me['email_verified_at']) {
+    redirect('/verify-email.php');
+}
 $error = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && post('form') === 'avatar') {
@@ -57,29 +60,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && post('form') === 'avatar') {
         flash('success', 'Profile updated.');
         redirect('/account.php');
     }
-} elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && post('form') === 'resend_verification') {
-    verify_csrf();
-    require_once __DIR__ . '/includes/resend.php';
-    if (!$me['email_verified_at']) {
-        $verification = create_email_verification((int) $me['id']);
-        $verifyUrl = (defined('APP_URL') ? APP_URL : '') . '/verify-email.php?token=' . $verification['token'];
-        send_transactional_email('email_verification', $me['email'], [
-            'name' => $me['name'],
-            'verify_url' => $verifyUrl,
-            'code' => $verification['code'],
-            'site_name' => get_setting('branding')['siteName'],
-        ]);
-    }
-    flash('success', 'Verification email sent — check your inbox.');
-    redirect('/account.php');
-} elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && post('form') === 'verify_code') {
-    verify_csrf();
-    if (consume_email_verification_code((int) $me['id'], post('code'))) {
-        flash('success', 'Email verified!');
-    } else {
-        flash('error', 'That code is invalid or has expired.');
-    }
-    redirect('/account.php');
 }
 
 $page_title = 'My Account';
@@ -114,23 +94,6 @@ require __DIR__ . '/includes/layout_header.php';
       </div>
     </div>
   </div>
-
-  <?php if (!$me['email_verified_at']): ?>
-    <div class="flash flash-error mt-4">
-      <div class="flex justify-between items-center" style="flex-wrap:wrap;gap:.5rem;">
-        <span><?= icon('alert-triangle') ?> Your email address isn't verified yet.</span>
-        <form method="post"><?= csrf_field() ?><input type="hidden" name="form" value="resend_verification">
-          <button type="submit" class="link text-xs" style="background:none;border:none;cursor:pointer;">Resend verification email</button>
-        </form>
-      </div>
-      <form method="post" class="flex gap-2 mt-2" style="align-items:center;flex-wrap:wrap;">
-        <?= csrf_field() ?><input type="hidden" name="form" value="verify_code">
-        <span class="text-xs">Link not working? Enter the 6-digit code from the email:</span>
-        <input type="text" name="code" maxlength="6" placeholder="123456" style="width:7rem;">
-        <button type="submit" class="btn btn-outline" style="padding:.35rem .75rem;font-size:.8rem;">Verify</button>
-      </form>
-    </div>
-  <?php endif; ?>
 
   <?php if ($error): ?><div class="flash flash-error mt-4"><?= e($error) ?></div><?php endif; ?>
 

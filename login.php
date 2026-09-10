@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'code' => $verification['code'],
                     'site_name' => get_setting('branding')['siteName'],
                 ]);
-                redirect(safe_local_redirect_path(post('redirect_to', '/index.php')));
+                redirect('/verify-email.php');
             }
         }
     } else {
