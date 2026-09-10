@@ -26,7 +26,6 @@ CREATE TABLE IF NOT EXISTS users (
   state           VARCHAR(2),
   zip_code        VARCHAR(12),
   store_name      VARCHAR(150),
-  avatar_url      VARCHAR(500),
   bio             VARCHAR(500),
   stripe_account_id VARCHAR(255),
   is_banned       TINYINT(1)        NOT NULL DEFAULT 0,
