@@ -46,6 +46,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'city' => 'VARCHAR(120) NULL',
         'zip_code' => 'VARCHAR(12) NULL',
         'store_name' => 'VARCHAR(150) NULL',
+        'school_name' => 'VARCHAR(200) NULL',
+        'state' => 'VARCHAR(2) NULL',
     ];
     foreach ($userColumns as $col => $def) {
         $r = add_column_if_missing('users', $col, $def);
