@@ -23,8 +23,28 @@ function add_column_if_missing(string $table, string $column, string $definition
     if (column_exists($table, $column)) {
         return null;
     }
-    db()->exec("ALTER TABLE `$table` ADD COLUMN `$column` $definition");
+    try {
+        db()->exec("ALTER TABLE `$table` ADD COLUMN `$column` $definition");
+    } catch (PDOException $e) {
+        return "ERROR adding column $table.$column: " . $e->getMessage();
+    }
     return "Added column $table.$column";
+}
+
+/**
+ * Runs one DDL/DML step and turns any failure into a log entry instead of an uncaught
+ * exception — a single bad step (e.g. a privilege error) used to kill the whole migration
+ * silently (blank 500 page) and leave everything after it, including new tables that later
+ * requests depend on, never created.
+ */
+function run_step(string $label, callable $fn): string
+{
+    try {
+        $fn();
+        return $label;
+    } catch (PDOException $e) {
+        return "ERROR $label: " . $e->getMessage();
+    }
 }
 
 $log = [];
@@ -117,24 +137,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = db()->prepare('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?');
         $stmt->execute([$name]);
         if (!$stmt->fetchColumn()) {
-            db()->exec($ddl);
-            $log[] = "Created table $name";
+            $log[] = run_step("Created table $name", fn() => db()->exec($ddl));
         }
     }
 
     // email_verifications.code_hash may exist from an older version of this table without it
     if (!column_exists('email_verifications', 'code_hash')) {
-        db()->exec("ALTER TABLE email_verifications ADD COLUMN code_hash CHAR(64) NOT NULL AFTER token_hash");
-        $log[] = 'Added column email_verifications.code_hash';
+        $log[] = run_step(
+            'Added column email_verifications.code_hash',
+            fn() => db()->exec("ALTER TABLE email_verifications ADD COLUMN code_hash CHAR(64) NOT NULL AFTER token_hash")
+        );
     }
 
     // donations.gateway_tx_id — makes donation confirmation idempotent (without it, a replayed
     // confirmation call for the same real Stripe payment inflates a campaign's funds and re-sends
     // the donor's receipt email every time).
     if (!column_exists('donations', 'gateway_tx_id')) {
-        db()->exec("ALTER TABLE donations ADD COLUMN gateway_tx_id VARCHAR(255) NULL");
-        db()->exec("ALTER TABLE donations ADD UNIQUE KEY uq_donations_gateway_tx (gateway_tx_id)");
-        $log[] = 'Added column donations.gateway_tx_id (with unique index)';
+        $log[] = run_step('Added column donations.gateway_tx_id (with unique index)', function () {
+            db()->exec("ALTER TABLE donations ADD COLUMN gateway_tx_id VARCHAR(255) NULL");
+            db()->exec("ALTER TABLE donations ADD UNIQUE KEY uq_donations_gateway_tx (gateway_tx_id)");
+        });
     }
 
     // email templates for password reset / email verification
@@ -152,16 +174,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = db()->prepare('SELECT COUNT(*) FROM email_templates WHERE template_key = ?');
         $stmt->execute([$key]);
         if (!$stmt->fetchColumn()) {
-            db()->prepare('INSERT INTO email_templates (template_key, subject, html_body) VALUES (?, ?, ?)')
-                ->execute([$key, $tpl['subject'], $tpl['html_body']]);
-            $log[] = "Added email template: $key";
+            $log[] = run_step("Added email template: $key", fn() => db()->prepare(
+                'INSERT INTO email_templates (template_key, subject, html_body) VALUES (?, ?, ?)'
+            )->execute([$key, $tpl['subject'], $tpl['html_body']]));
         }
     }
 
     if (!$log) {
         $log[] = 'Database already up to date — nothing to change.';
     }
-    flash('success', implode(' · ', $log));
+    $hasErrors = (bool) array_filter($log, fn($l) => str_starts_with($l, 'ERROR'));
+    flash($hasErrors ? 'error' : 'success', implode(' · ', $log));
     redirect('/admin/migrate.php');
 }
 
