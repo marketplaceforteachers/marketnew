@@ -3,7 +3,7 @@ require_once __DIR__ . '/../../includes/bootstrap.php';
 require_once __DIR__ . '/../../includes/stripe.php';
 header('Content-Type: application/json');
 
-$me = require_role('teacher', 'admin');
+$me = require_auth();
 
 try {
     $accountId = $me['stripe_account_id'];

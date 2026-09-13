@@ -2,7 +2,7 @@
 require_once __DIR__ . '/includes/bootstrap.php';
 
 $id = (int) param('id');
-$stmt = db()->prepare("SELECT * FROM users WHERE id = ? AND role = 'teacher'");
+$stmt = db()->prepare("SELECT * FROM users WHERE id = ?");
 $stmt->execute([$id]);
 $seller = $stmt->fetch();
 

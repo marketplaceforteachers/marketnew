@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/includes/bootstrap.php';
-$me = require_role('teacher', 'admin');
+$me = require_auth();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && post('action') === 'toggle_active') {
     verify_csrf();

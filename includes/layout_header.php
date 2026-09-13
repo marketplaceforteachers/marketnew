@@ -96,8 +96,8 @@ if (($_SERVER['REQUEST_URI'] ?? '') === '/' || basename($_SERVER['SCRIPT_NAME'] 
             <a href="/orders.php"><?= icon('package') ?> Your Orders</a>
             <a href="/messages.php"><?= icon('message') ?> Messages</a>
             <a href="/account.php"><?= icon('lock') ?> My Account</a>
+            <a href="/seller-dashboard.php"><?= icon('layout-grid') ?> Seller Dashboard</a>
             <?php if ($me['role'] === 'teacher'): ?>
-              <a href="/seller-dashboard.php"><?= icon('layout-grid') ?> Seller Dashboard</a>
               <a href="/seller-verification.php"><?= icon('badge-check') ?> Educator Verification</a>
             <?php endif; ?>
             <?php if ($me['role'] === 'admin'): ?>

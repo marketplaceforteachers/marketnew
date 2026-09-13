@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/includes/bootstrap.php';
-$me = require_role('teacher', 'admin');
+$me = require_auth();
 
 $grades = ['Pre-K', 'K-2', '2nd-4th', '4th-8th', 'K-5', '6th-8th', '9th-12th'];
 $error = null;
