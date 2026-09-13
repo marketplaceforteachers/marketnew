@@ -73,3 +73,21 @@ ALTER TABLE orders ADD COLUMN IF NOT EXISTS shipping_phone VARCHAR(30) NULL;
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS shipping_city VARCHAR(120) NULL;
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS shipping_state VARCHAR(2) NULL;
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS shipping_zip VARCHAR(12) NULL;
+
+-- 2026-09-13 follow-up: the initial catch-up above missed two email templates that
+-- admin/migrate.php also adds, since it was applied via raw SQL rather than the tool
+-- itself. Without 'email_verification', every signup's welcome email sent fine but the
+-- verification email silently failed (send_transactional_email finds no template row and
+-- returns a 'failed' status without ever attempting delivery) — so users never got a way
+-- to verify. Also switches delivery to PHP mail() since no Resend API key is configured yet.
+INSERT INTO email_templates (template_key, subject, html_body)
+SELECT 'password_reset', 'Reset your password',
+'<p>Hi {{name}},</p><p>Click the button below to reset your password. This link expires in 1 hour.</p><p style="text-align:center;margin:28px 0;"><a href="{{reset_url}}" style="background:#1d4ed8;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600;">Reset Password</a></p><p>If you didn''t request this, you can safely ignore this email.</p>'
+WHERE NOT EXISTS (SELECT 1 FROM email_templates WHERE template_key = 'password_reset');
+
+INSERT INTO email_templates (template_key, subject, html_body)
+SELECT 'email_verification', 'Verify your email address',
+'<p>Hi {{name}},</p><p>Thanks for joining! Click the button below to verify your email, or enter this code on the verification page:</p><p style="text-align:center;font-size:28px;font-weight:700;letter-spacing:4px;margin:20px 0;">{{code}}</p><p style="text-align:center;margin:28px 0;"><a href="{{verify_url}}" style="background:#1d4ed8;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600;">Verify Email</a></p><p>This code and link expire in 1 hour.</p>'
+WHERE NOT EXISTS (SELECT 1 FROM email_templates WHERE template_key = 'email_verification');
+
+UPDATE site_settings SET value_json = '{"method":"php_mail"}' WHERE setting_key = 'mail_delivery';
