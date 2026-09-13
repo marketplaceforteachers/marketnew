@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/includes/bootstrap.php';
+require_once __DIR__ . '/includes/uploads.php';
 $me = require_auth();
 
 $grades = ['Pre-K', 'K-2', '2nd-4th', '4th-8th', 'K-5', '6th-8th', '9th-12th'];
@@ -17,8 +18,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $shippingFee = (float) post('shipping_fee', 0);
     $imageUrls = array_filter(array_map('trim', post('image_urls', [])));
 
+    $uploadedImages = [];
+    $uploadError = null;
+    $fileCount = count($_FILES['image_files']['name'] ?? []);
+    for ($i = 0; $i < $fileCount; $i++) {
+        if (($_FILES['image_files']['error'][$i] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+            continue;
+        }
+        $file = [
+            'name' => $_FILES['image_files']['name'][$i],
+            'type' => $_FILES['image_files']['type'][$i],
+            'tmp_name' => $_FILES['image_files']['tmp_name'][$i],
+            'error' => $_FILES['image_files']['error'][$i],
+            'size' => $_FILES['image_files']['size'][$i],
+        ];
+        $result = handle_image_upload($file, 'listings');
+        if ($result['ok']) {
+            $uploadedImages[] = $result['url'];
+        } else {
+            $uploadError = $result['error'];
+        }
+    }
+
     if (strlen($title) < 3 || !$categoryId) {
         $error = 'Please fill in a title and choose a category.';
+    } elseif ($uploadError) {
+        $error = $uploadError;
     } else {
         $slug = slugify($title);
         db()->prepare(
@@ -27,7 +52,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         )->execute([$me['id'], $categoryId, $title, $slug, $description, $price, $gradeLevel, $conditionType, $shippingType, $shippingFee]);
         $listingId = (int) db()->lastInsertId();
 
-        foreach (array_values($imageUrls) as $i => $url) {
+        $allImages = array_merge($uploadedImages, array_values($imageUrls));
+        foreach ($allImages as $i => $url) {
             db()->prepare('INSERT INTO listing_images (listing_id, image_url, is_primary) VALUES (?, ?, ?)')
                 ->execute([$listingId, $url, $i === 0 ? 1 : 0]);
         }
@@ -47,7 +73,7 @@ require __DIR__ . '/includes/layout_header.php';
   <h1 class="text-xl">Post a Free Teacher Listing</h1>
   <p class="text-sm text-muted mt-1">Zero listing fees. Your item goes live immediately.</p>
 
-  <form method="post" class="card card-pad mt-4">
+  <form method="post" enctype="multipart/form-data" class="card card-pad mt-4">
     <?= csrf_field() ?>
     <?php if ($error): ?><div class="flash flash-error"><?= e($error) ?></div><?php endif; ?>
 
@@ -97,7 +123,13 @@ require __DIR__ . '/includes/layout_header.php';
     </div>
 
     <div class="field">
-      <label>Photo URLs</label>
+      <label>Photos</label>
+      <input type="file" name="image_files[]" accept="image/jpeg,image/png,image/webp" multiple>
+      <p class="text-xs text-muted mt-1">JPEG, PNG, or WebP, up to 5MB each. The first photo (upload or URL) becomes the cover image.</p>
+    </div>
+
+    <div class="field">
+      <label>...or paste photo URLs <span class="text-muted" style="text-transform:none;font-weight:400;">(optional, in addition to uploads)</span></label>
       <div id="photo-rows-list" class="stack">
         <div class="dynamic-row flex gap-2"><input type="url" name="image_urls[]" placeholder="https://..."></div>
       </div>
