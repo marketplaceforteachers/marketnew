@@ -66,6 +66,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $categories = db()->query('SELECT id, name FROM categories ORDER BY name')->fetchAll();
+$aiConfig = get_anthropic_config();
+$aiEnabled = !empty($aiConfig['isEnabled']) && !empty($aiConfig['apiKey']);
 $page_title = 'Post a Listing';
 require __DIR__ . '/includes/layout_header.php';
 ?>
@@ -77,20 +79,31 @@ require __DIR__ . '/includes/layout_header.php';
     <?= csrf_field() ?>
     <?php if ($error): ?><div class="flash flash-error"><?= e($error) ?></div><?php endif; ?>
 
-    <div class="field"><label>Title</label><input type="text" name="title" required minlength="3" value="<?= old('title') ?>"></div>
-    <div class="field"><label>Description</label><textarea name="description" rows="4" required><?= old('description') ?></textarea></div>
+    <?php if ($aiEnabled): ?>
+      <div class="field" style="background:var(--surface-2);padding:.75rem;border-radius:var(--radius);">
+        <label><?= icon('sparkles') ?> Let AI write your title &amp; description</label>
+        <div class="flex gap-2 mt-1" style="flex-wrap:wrap;">
+          <input type="text" id="ai-notes" placeholder="A few keywords about the item, e.g. &quot;used geometry manipulatives, 200 pattern blocks, some wear&quot;" style="flex:1;min-width:14rem;">
+          <button type="button" id="ai-generate-btn" class="btn btn-outline"><?= icon('sparkles') ?> Generate</button>
+        </div>
+        <p id="ai-status" class="text-xs text-muted mt-1"></p>
+      </div>
+    <?php endif; ?>
+
+    <div class="field"><label>Title</label><input type="text" id="title" name="title" required minlength="3" value="<?= old('title') ?>"></div>
+    <div class="field"><label>Description</label><textarea id="description" name="description" rows="4" required><?= old('description') ?></textarea></div>
 
     <div class="grid grid-2">
       <div class="field">
         <label>Category</label>
-        <select name="category_id" required>
+        <select id="category_id" name="category_id" required>
           <option value="">Select…</option>
           <?php foreach ($categories as $c): ?><option value="<?= $c['id'] ?>"><?= e($c['name']) ?></option><?php endforeach; ?>
         </select>
       </div>
       <div class="field">
         <label>Grade Level</label>
-        <select name="grade_level">
+        <select id="grade_level" name="grade_level">
           <?php foreach ($grades as $g): ?><option value="<?= e($g) ?>"><?= e($g) ?></option><?php endforeach; ?>
         </select>
       </div>
@@ -100,7 +113,7 @@ require __DIR__ . '/includes/layout_header.php';
       <div class="field"><label>Price ($0 = Free)</label><input type="number" name="price" min="0" step="0.01" required></div>
       <div class="field">
         <label>Condition</label>
-        <select name="condition_type">
+        <select id="condition_type" name="condition_type">
           <option value="new">New</option>
           <option value="like_new">Like New</option>
           <option value="good" selected>Good</option>
@@ -145,4 +158,42 @@ require __DIR__ . '/includes/layout_header.php';
     <button class="btn btn-primary w-full mt-2" style="justify-content:center;">Post Listing</button>
   </form>
 </div>
+<?php if ($aiEnabled): ?>
+<script>
+document.getElementById('ai-generate-btn').addEventListener('click', async () => {
+  const btn = document.getElementById('ai-generate-btn');
+  const status = document.getElementById('ai-status');
+  const notes = document.getElementById('ai-notes').value.trim();
+  const categorySelect = document.getElementById('category_id');
+  const category = categorySelect.options[categorySelect.selectedIndex]?.text || '';
+
+  btn.disabled = true;
+  status.textContent = 'Generating…';
+  status.style.color = '';
+
+  try {
+    const res = await fetch('/api/ajax/generate_listing_description.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        notes,
+        category,
+        condition: document.getElementById('condition_type').value,
+        gradeLevel: document.getElementById('grade_level').value,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Something went wrong.');
+    document.getElementById('title').value = data.title;
+    document.getElementById('description').value = data.description;
+    status.textContent = 'Draft filled in below — edit as you like.';
+  } catch (err) {
+    status.textContent = err.message;
+    status.style.color = 'var(--red-600)';
+  } finally {
+    btn.disabled = false;
+  }
+});
+</script>
+<?php endif; ?>
 <?php require __DIR__ . '/includes/layout_footer.php'; ?>
