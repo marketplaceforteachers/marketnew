@@ -317,6 +317,7 @@ CREATE TABLE IF NOT EXISTS email_logs (
   recipient       VARCHAR(255)      NOT NULL,
   status          ENUM('queued','sent','failed') NOT NULL DEFAULT 'queued',
   sent_at         TIMESTAMP         NULL,
+  error_message   VARCHAR(500),
   KEY idx_email_logs_template (template_key)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

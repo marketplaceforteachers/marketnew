@@ -16,8 +16,9 @@ function send_transactional_email(string $templateKey, string $to, array $data =
     $template = $stmt->fetch();
 
     if (!$template) {
-        log_email($templateKey, $to, 'failed');
-        return ['status' => 'failed', 'error' => "No email template found for \"$templateKey\""];
+        $error = "No email template found for \"$templateKey\"";
+        log_email($templateKey, $to, 'failed', $error);
+        return ['status' => 'failed', 'error' => $error];
     }
 
     $subject = render_template($template['subject'], $data);
@@ -25,7 +26,7 @@ function send_transactional_email(string $templateKey, string $to, array $data =
     $html = wrap_email_letterhead($bodyHtml, $subject);
     $result = dispatch_email($to, $subject, $html);
 
-    log_email($templateKey, $to, $result['status']);
+    log_email($templateKey, $to, $result['status'], $result['error'] ?? null);
     return $result;
 }
 
@@ -266,10 +267,10 @@ function mail_encode_header(string $value): string
     return '=?UTF-8?B?' . base64_encode($value) . '?=';
 }
 
-function log_email(string $templateKey, string $recipient, string $status): void
+function log_email(string $templateKey, string $recipient, string $status, ?string $error = null): void
 {
     $stmt = db()->prepare(
-        'INSERT INTO email_logs (template_key, recipient, status, sent_at) VALUES (?, ?, ?, ?)'
+        'INSERT INTO email_logs (template_key, recipient, status, sent_at, error_message) VALUES (?, ?, ?, ?, ?)'
     );
-    $stmt->execute([$templateKey, $recipient, $status, $status === 'sent' ? date('Y-m-d H:i:s') : null]);
+    $stmt->execute([$templateKey, $recipient, $status, $status === 'sent' ? date('Y-m-d H:i:s') : null, $error]);
 }

@@ -87,6 +87,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($r) $log[] = $r;
     }
 
+    // email_logs — records why a send failed, not just that it did
+    $r = add_column_if_missing('email_logs', 'error_message', 'VARCHAR(500) NULL');
+    if ($r) $log[] = $r;
+
     // new standalone tables
     $tables = [
         'login_attempts' => "CREATE TABLE IF NOT EXISTS login_attempts (
