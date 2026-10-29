@@ -565,3 +565,33 @@ input[type=file]::file-selector-button { font: inherit; font-weight: 700; border
 .footer-desc { line-height: 1.7; }
 .footer-social a { border-radius: 999px; }
 .file-size-error { flex-basis: 100%; order: 10; margin: .25rem 0 0; }
+
+/* Admin sign-in — a standalone dark page with the same glow as the homepage band */
+.admin-login-page { min-height: 100vh; margin: 0; background: radial-gradient(ellipse 700px 500px at 85% -10%, rgba(37,99,235,.35), transparent 60%), radial-gradient(ellipse 600px 420px at 0% 110%, rgba(245,158,11,.18), transparent 60%), #0b1428; display: flex; align-items: center; justify-content: center; padding: 2rem 1rem; }
+.admin-login-wrap { width: 100%; max-width: 420px; }
+.admin-login-brand { display: flex; justify-content: center; margin-bottom: 1.5rem; }
+.admin-login-card { background: var(--surface); border-radius: var(--radius-xl); padding: 2rem; box-shadow: 0 40px 80px -30px rgba(0,0,0,.65), 0 0 0 1px rgba(255,255,255,.06); }
+
+/* Admin workbook */
+.workbook-layout { display: grid; grid-template-columns: 270px 1fr; gap: 1.25rem; align-items: start; }
+@media (max-width: 900px) { .workbook-layout { grid-template-columns: 1fr; } }
+.workbook-toc { padding: .5rem; position: sticky; top: 1rem; }
+.workbook-toc a { display: flex; gap: .7rem; align-items: flex-start; padding: .65rem .7rem; border-radius: var(--radius); transition: background-color .12s var(--ease); }
+.workbook-toc a:hover { background: var(--surface-2); }
+.workbook-toc a.active { background: var(--royal-50); }
+.workbook-toc strong { display: block; font-size: .85rem; line-height: 1.3; }
+.workbook-toc small { display: block; font-size: .72rem; color: var(--text-muted); line-height: 1.4; margin-top: .15rem; }
+.workbook-num { flex-shrink: 0; width: 1.6rem; height: 1.6rem; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-family: var(--font-serif); font-style: italic; font-weight: 700; font-size: .85rem; background: var(--surface-2); color: var(--slate-600); }
+.workbook-toc a.active .workbook-num { background: linear-gradient(180deg, #fcd34d, var(--amber-500)); color: var(--slate-900); }
+.workbook-chapter .blog-content { max-width: 46rem; line-height: 1.7; }
+.workbook-chapter .blog-content h3 { font-size: 1.1rem; }
+.workbook-chapter .blog-content ul { padding-left: 1.1rem; }
+
+@media print {
+  .admin-sidebar, .no-print, .workbook-toc { display: none !important; }
+  .admin-main { padding: 0; max-width: none; }
+  .workbook-layout { display: block; }
+  .card { box-shadow: none; border: none; }
+  .workbook-print .workbook-chapter { page-break-after: always; }
+  body, .admin-shell { background: #fff !important; }
+}

@@ -44,6 +44,9 @@ function require_role(string ...$roles): array
 
 function require_admin(): array
 {
+    if (!current_user()) {
+        redirect('/admin/login.php?redirect=' . urlencode($_SERVER['REQUEST_URI'] ?? '/admin/index.php'));
+    }
     return require_role('admin');
 }
 

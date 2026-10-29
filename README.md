@@ -15,13 +15,20 @@ Composer, no Node, no framework. Everything (Stripe, PayPal, Resend) talks to it
    seeds demo data, and writes `config.php` for you.
 4. **Delete or rename `install.php`** once installed (it re-checks for `config.php` on every load,
    so it's not exploitable once set up, but it's good hygiene to remove it).
-5. Log in as `admin@example.com` / `AdminPass123!` (shown again at the end of setup) and change the
+5. Sign in at **`/admin/login.php`** (the admin-only sign-in page) as `admin@example.com` / `AdminPass123!` (shown again at the end of setup) and change the
    password from **Admin → User Manager**, or just create your own admin account and demote/delete
    the demo one.
 
 No `.env` file, no `npm run build`, no PHP extensions beyond the defaults most hosts already have
 (`pdo_mysql`, `curl`, `openssl`, `gd` — all standard, `gd` powers profile-photo and blog-image
 uploads). PHP 8.0+ recommended.
+
+## Admin workbook
+
+**Admin → Workbook** is a step-by-step guide to running the site (deploys, email, payments,
+verification, disputes, a weekly routine). Every chapter is editable and printable; edits are
+saved in `site_settings` (`admin_workbook`), and the starting text lives in
+`includes/workbook_default.php`.
 
 ## Turning on real payments and email
 
