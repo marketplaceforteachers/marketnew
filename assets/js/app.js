@@ -201,3 +201,46 @@ function initHeroSlideshow() {
 
   start();
 }
+
+// Photo size check: catch too-large images in the browser, before a long upload that the server
+// would reject anyway. The server checks again (and handles the case where JS is off).
+function formatBytes(bytes) {
+  const mb = bytes / 1024 / 1024;
+  return mb >= 1 ? `${Math.round(mb * 10) / 10}MB` : `${Math.round(bytes / 1024)}KB`;
+}
+
+function checkFileSizes(input) {
+  const max = Number(input.dataset.maxBytes || 0);
+  let msg = input.parentElement.querySelector('.file-size-error');
+  if (!msg) {
+    msg = document.createElement('p');
+    msg.className = 'file-size-error flash flash-error mt-1';
+    msg.setAttribute('role', 'alert');
+    msg.hidden = true;
+    input.insertAdjacentElement('afterend', msg);
+  }
+  const tooBig = max ? Array.from(input.files || []).filter((f) => f.size > max) : [];
+  if (tooBig.length) {
+    const names = tooBig.map((f) => `"${f.name}" (${formatBytes(f.size)})`).join(', ');
+    msg.textContent = `${names} ${tooBig.length > 1 ? 'are' : 'is'} too large. Please choose a photo under ${formatBytes(max)}.`;
+    msg.hidden = false;
+    input.value = '';
+    return false;
+  }
+  msg.hidden = true;
+  return true;
+}
+
+document.addEventListener('change', (e) => {
+  if (e.target.matches('input[type="file"][data-max-bytes]')) checkFileSizes(e.target);
+});
+document.addEventListener('submit', (e) => {
+  const inputs = e.target.querySelectorAll('input[type="file"][data-max-bytes]');
+  for (const input of inputs) {
+    if (!checkFileSizes(input)) {
+      e.preventDefault();
+      input.focus();
+      return;
+    }
+  }
+});

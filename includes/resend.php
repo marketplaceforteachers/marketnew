@@ -137,7 +137,10 @@ function send_via_resend(string $to, string $subject, string $html): array
         return ['status' => 'failed', 'error' => "Connection error: $curlError"];
     }
     if ($status >= 400) {
-        return ['status' => 'failed', 'error' => "Resend responded with $status"];
+        // Keep Resend's own explanation (e.g. "The marketplaceforteachers.com domain is not
+        // verified") so Admin -> Email Template Studio shows what to fix, not just a number.
+        $detail = json_decode((string) $response, true)['message'] ?? '';
+        return ['status' => 'failed', 'error' => "Resend responded with $status" . ($detail !== '' ? ": $detail" : '')];
     }
     return ['status' => 'sent'];
 }
@@ -269,8 +272,19 @@ function mail_encode_header(string $value): string
 
 function log_email(string $templateKey, string $recipient, string $status, ?string $error = null): void
 {
-    $stmt = db()->prepare(
-        'INSERT INTO email_logs (template_key, recipient, status, sent_at, error_message) VALUES (?, ?, ?, ?, ?)'
-    );
-    $stmt->execute([$templateKey, $recipient, $status, $status === 'sent' ? date('Y-m-d H:i:s') : null, $error]);
+    $sentAt = $status === 'sent' ? date('Y-m-d H:i:s') : null;
+    try {
+        db()->prepare(
+            'INSERT INTO email_logs (template_key, recipient, status, sent_at, error_message) VALUES (?, ?, ?, ?, ?)'
+        )->execute([$templateKey, $recipient, $status, $sentAt, $error === null ? null : mb_substr($error, 0, 500)]);
+    } catch (PDOException $e) {
+        // A database that hasn't had Admin -> Migrate run yet has no error_message column. Logging
+        // must never be the thing that stops an email (or a signup) from going through.
+        try {
+            db()->prepare('INSERT INTO email_logs (template_key, recipient, status, sent_at) VALUES (?, ?, ?, ?)')
+                ->execute([$templateKey, $recipient, $status, $sentAt]);
+        } catch (PDOException $e) {
+            error_log("email_logs insert failed: {$e->getMessage()}");
+        }
+    }
 }

@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/includes/bootstrap.php';
+require_once __DIR__ . '/includes/resend.php';
 
 if (current_user()) {
     redirect('/index.php');
@@ -29,7 +30,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'zip_code' => trim(post('zip_code')) ?: null,
             'school_name' => trim(post('school_name')) ?: null,
             'school_email' => trim(post('school_email')) ?: null,
-            'district' => trim(post('district')) ?: null,
             'state' => trim(post('state')) ?: null,
         ];
         if (strlen($firstName) < 1 || strlen($lastName) < 1) {
@@ -48,15 +48,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $error = 'An account with that email already exists.';
                 $mode = 'register';
             } else {
-                send_transactional_email('welcome', $user['email'], ['teacher_name' => $user['name'], 'site_name' => get_setting('branding')['siteName']]);
+                // The confirmation email goes first: it's the one the new member actually needs.
                 $verification = create_email_verification((int) $user['id']);
                 $verifyUrl = (defined('APP_URL') ? APP_URL : '') . '/verify-email.php?token=' . $verification['token'];
-                send_transactional_email('email_verification', $user['email'], [
+                $sent = send_transactional_email('email_verification', $user['email'], [
                     'name' => $user['name'],
                     'verify_url' => $verifyUrl,
                     'code' => $verification['code'],
                     'site_name' => get_setting('branding')['siteName'],
                 ]);
+                $_SESSION['verification_email_failed'] = $sent['status'] !== 'sent';
+                send_transactional_email('welcome', $user['email'], ['teacher_name' => $user['name'], 'site_name' => get_setting('branding')['siteName']]);
                 redirect('/verify-email.php');
             }
         }
@@ -76,7 +78,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-require_once __DIR__ . '/includes/resend.php';
 $page_title = 'Log In';
 require __DIR__ . '/includes/layout_header.php';
 ?>
@@ -134,10 +135,7 @@ require __DIR__ . '/includes/layout_header.php';
         <div id="teacher-fields" class="<?= $oldRole === 'teacher' ? '' : 'hidden' ?>">
           <div class="field"><label>School or District Name</label><input type="text" name="school_name" placeholder="e.g. Pennsylvania Elementary" value="<?= old('school_name') ?>"></div>
           <div class="field"><label>School/District Email <span class="text-muted" style="text-transform:none;font-weight:400;">(for verification, optional)</span></label><input type="email" name="school_email" placeholder="you@yourschool.edu" value="<?= old('school_email') ?>"></div>
-          <div class="grid grid-2">
-            <div class="field"><label>District</label><input type="text" name="district" placeholder="e.g. Oklahoma City Public Schools" value="<?= old('district') ?>"></div>
-            <div class="field"><label>State</label><input type="text" name="state" maxlength="2" placeholder="OK" style="text-transform:uppercase;" value="<?= old('state') ?>"></div>
-          </div>
+          <div class="field"><label>State</label><input type="text" name="state" maxlength="2" placeholder="OK" style="text-transform:uppercase;" value="<?= old('state') ?>"></div>
         </div>
       <?php endif; ?>
       <?php if ($error): ?><div class="flash flash-error"><?= e($error) ?></div><?php endif; ?>

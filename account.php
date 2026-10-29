@@ -82,7 +82,7 @@ require __DIR__ . '/includes/layout_header.php';
       <div style="flex:1;min-width:14rem;">
         <form method="post" enctype="multipart/form-data" class="flex gap-2" style="align-items:center;flex-wrap:wrap;">
           <?= csrf_field() ?><input type="hidden" name="form" value="avatar">
-          <input type="file" name="avatar" accept="image/jpeg,image/png,image/webp" required>
+          <input type="file" name="avatar" accept="image/jpeg,image/png,image/webp" data-max-bytes="<?= upload_limit_bytes() ?>" required>
           <button type="submit" class="btn btn-outline" style="padding:.5rem .9rem;font-size:.82rem;">Upload</button>
         </form>
         <?php if ($me['avatar_url']): ?>
@@ -90,7 +90,7 @@ require __DIR__ . '/includes/layout_header.php';
             <button type="submit" class="link text-xs" style="background:none;border:none;cursor:pointer;color:var(--red-600);">Remove photo</button>
           </form>
         <?php endif; ?>
-        <p class="text-xs text-muted mt-1">JPEG, PNG, or WebP. Optional — buyers and sellers can leave this blank.</p>
+        <p class="text-xs text-muted mt-1">JPEG, PNG, or WebP, up to <?= e(format_upload_limit()) ?>. Optional — you can leave this blank.</p>
       </div>
     </div>
   </div>

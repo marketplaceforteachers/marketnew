@@ -146,7 +146,7 @@ require __DIR__ . '/../includes/admin_layout_header.php';
       <input type="hidden" name="action" value="upload_content_image">
       <input type="hidden" name="id" value="<?= (int) ($editingPost['id'] ?? 0) ?>">
       <span class="text-xs font-bold text-muted">Upload an image to use in the content below:</span>
-      <input type="file" name="content_image" accept="image/jpeg,image/png,image/webp" required style="flex:1;min-width:12rem;">
+      <input type="file" name="content_image" accept="image/jpeg,image/png,image/webp" data-max-bytes="<?= upload_limit_bytes() ?>" required style="flex:1;min-width:12rem;">
       <button type="submit" class="btn btn-outline" style="padding:.4rem .8rem;font-size:.8rem;">Upload</button>
     </form>
 
@@ -173,7 +173,7 @@ require __DIR__ . '/../includes/admin_layout_header.php';
         <div class="field"><label>Cover image URL <span class="text-muted" style="text-transform:none;font-weight:400;">(optional)</span></label><input type="text" name="cover_image_url" value="<?= e($editingPost['cover_image_url'] ?? '') ?>"></div>
         <div class="field"><label>Author name</label><input type="text" name="author_name" value="<?= e($editingPost['author_name'] ?? 'MarketplaceForTeachers.com Team') ?>"></div>
       </div>
-      <div class="field"><label>...or upload a cover image <span class="text-muted" style="text-transform:none;font-weight:400;">(replaces the URL above if both are set)</span></label><input type="file" name="cover_image_file" accept="image/jpeg,image/png,image/webp"></div>
+      <div class="field"><label>...or upload a cover image <span class="text-muted" style="text-transform:none;font-weight:400;">(replaces the URL above if both are set)</span></label><input type="file" name="cover_image_file" accept="image/jpeg,image/png,image/webp" data-max-bytes="<?= upload_limit_bytes() ?>"></div>
       <div class="field">
         <label>Status</label>
         <select name="status">

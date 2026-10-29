@@ -410,3 +410,11 @@ function category_accent(?string $slug): string
     }
     return CATEGORY_ACCENT_TONES[crc32($slug) % count(CATEGORY_ACCENT_TONES)];
 }
+
+/** Human-readable upload size limit, e.g. "5MB". */
+function format_upload_limit(): string
+{
+    require_once __DIR__ . '/uploads.php';
+    $mb = upload_limit_bytes() / 1024 / 1024;
+    return ($mb >= 1 ? rtrim(rtrim(number_format($mb, 1), '0'), '.') . 'MB' : round($mb * 1024) . 'KB');
+}

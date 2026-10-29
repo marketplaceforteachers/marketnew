@@ -9,8 +9,31 @@
  * anything the client sent, and always ends in .jpg regardless of the source format.
  */
 
-const UPLOAD_MAX_BYTES = 5 * 1024 * 1024; // 5MB — generous for a photo, still bounded
+const UPLOAD_MAX_BYTES = 10 * 1024 * 1024; // 10MB — fits a full-size phone photo, still bounded
 const UPLOAD_MAX_DIMENSION = 1600; // longest edge, px — plenty for web display, keeps files small
+
+/** Smallest of our own cap and the server's upload_max_filesize / post_max_size. */
+function upload_limit_bytes(): int
+{
+    $toBytes = static function (string $v): int {
+        $v = trim($v);
+        $n = (int) $v;
+        return match (strtolower(substr($v, -1))) {
+            'g' => $n * 1024 ** 3,
+            'm' => $n * 1024 ** 2,
+            'k' => $n * 1024,
+            default => $n,
+        };
+    };
+    $limits = [UPLOAD_MAX_BYTES];
+    foreach (['upload_max_filesize', 'post_max_size'] as $key) {
+        $bytes = $toBytes((string) ini_get($key));
+        if ($bytes > 0) {
+            $limits[] = $bytes;
+        }
+    }
+    return min($limits);
+}
 
 /**
  * @param array $file One element of $_FILES, e.g. $_FILES['avatar']
@@ -22,14 +45,17 @@ function handle_image_upload(array $file, string $subdir): array
     if (($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
         return ['ok' => false, 'error' => 'No file was uploaded.'];
     }
+    if ($file['error'] === UPLOAD_ERR_INI_SIZE || $file['error'] === UPLOAD_ERR_FORM_SIZE) {
+        return ['ok' => false, 'error' => 'That photo is too large. Please choose an image under ' . format_upload_limit() . '.'];
+    }
     if ($file['error'] !== UPLOAD_ERR_OK) {
-        return ['ok' => false, 'error' => 'Upload failed (error code ' . $file['error'] . ').'];
+        return ['ok' => false, 'error' => 'The upload didn\'t go through. Please try again.'];
     }
     if (!is_uploaded_file($file['tmp_name'])) {
         return ['ok' => false, 'error' => 'Invalid upload.'];
     }
-    if ($file['size'] > UPLOAD_MAX_BYTES) {
-        return ['ok' => false, 'error' => 'Image is too large — max ' . (UPLOAD_MAX_BYTES / 1024 / 1024) . 'MB.'];
+    if ($file['size'] > upload_limit_bytes()) {
+        return ['ok' => false, 'error' => 'That photo is too large. Please choose an image under ' . format_upload_limit() . '.'];
     }
 
     // getimagesize() reads the actual file header/content, not the client-supplied filename or
@@ -38,6 +64,13 @@ function handle_image_upload(array $file, string $subdir): array
     if ($info === false) {
         return ['ok' => false, 'error' => 'That file is not a readable image.'];
     }
+    // Decoding needs roughly width x height x 4 bytes, twice over while we flatten it. A huge
+    // camera image can blow past the host's memory limit and kill the request with a blank page,
+    // so turn it away politely instead.
+    if ($info[0] * $info[1] > 40_000_000) {
+        return ['ok' => false, 'error' => 'That photo\'s dimensions are too large. Please use a smaller version of the image.'];
+    }
+    @ini_set('memory_limit', '256M');
 
     $image = match ($info[2]) {
         IMAGETYPE_JPEG => @imagecreatefromjpeg($file['tmp_name']),

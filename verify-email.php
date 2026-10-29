@@ -28,14 +28,19 @@ if (!$success && $_SERVER['REQUEST_METHOD'] === 'POST' && post('form') === 'veri
     if (!$me['email_verified_at']) {
         $verification = create_email_verification((int) $me['id']);
         $verifyUrl = (defined('APP_URL') ? APP_URL : '') . '/verify-email.php?token=' . $verification['token'];
-        send_transactional_email('email_verification', $me['email'], [
+        $sent = send_transactional_email('email_verification', $me['email'], [
             'name' => $me['name'],
             'verify_url' => $verifyUrl,
             'code' => $verification['code'],
             'site_name' => get_setting('branding')['siteName'],
         ]);
+        $_SESSION['verification_email_failed'] = $sent['status'] !== 'sent';
     }
-    $resent = true;
+    $resent = empty($_SESSION['verification_email_failed']);
+}
+
+if ($success) {
+    unset($_SESSION['verification_email_failed']);
 }
 
 $page_title = 'Verify Email';
@@ -56,11 +61,16 @@ require __DIR__ . '/includes/layout_header.php';
         <p class="text-sm text-muted mt-2">Verification links expire after 24 hours.</p>
       <?php else: ?>
         <h1 class="text-lg">Verify your email address</h1>
-        <p class="text-sm text-muted mt-2">We sent a verification link and a 6-digit code to your email. Click the link, or enter the code below.</p>
+        <p class="text-sm text-muted mt-2">We've emailed you a link and a 6-digit code. Click the link, or type the code below. If it's not in your inbox, check spam.</p>
       <?php endif; ?>
 
       <?php if (current_user()): ?>
-        <?php if ($resent): ?><div class="flash flash-success mt-3">Verification email sent — check your inbox.</div><?php endif; ?>
+        <?php if (!empty($_SESSION['verification_email_failed'])): ?>
+          <?php $supportEmail = get_setting('footer')['supportEmail'] ?? ''; ?>
+          <div class="flash flash-error mt-3 text-left">
+            We couldn't send your verification email just now. Please try "Resend the email" below in a few minutes<?php if ($supportEmail): ?>, or write to us at <a class="link" href="mailto:<?= e($supportEmail) ?>"><?= e($supportEmail) ?></a> and we'll verify you by hand<?php endif; ?>.
+          </div>
+        <?php elseif ($resent): ?><div class="flash flash-success mt-3">Verification email sent. Check your inbox (and your spam folder).</div><?php endif; ?>
         <?php if ($codeError): ?><div class="flash flash-error mt-3"><?= e($codeError) ?></div><?php endif; ?>
         <form method="post" class="mt-4 text-left">
           <?= csrf_field() ?><input type="hidden" name="form" value="verify_code">

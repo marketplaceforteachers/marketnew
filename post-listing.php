@@ -137,8 +137,8 @@ require __DIR__ . '/includes/layout_header.php';
 
     <div class="field">
       <label>Photos</label>
-      <input type="file" name="image_files[]" accept="image/jpeg,image/png,image/webp" multiple>
-      <p class="text-xs text-muted mt-1">JPEG, PNG, or WebP, up to 5MB each. The first photo (upload or URL) becomes the cover image.</p>
+      <input type="file" name="image_files[]" accept="image/jpeg,image/png,image/webp" data-max-bytes="<?= upload_limit_bytes() ?>" multiple>
+      <p class="text-xs text-muted mt-1">JPEG, PNG, or WebP, up to <?= e(format_upload_limit()) ?> each. The first photo (upload or URL) becomes the cover image.</p>
     </div>
 
     <div class="field">
