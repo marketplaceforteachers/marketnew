@@ -6,6 +6,7 @@ $grade = param('grade');
 $condition = param('condition');
 $shipping = param('shipping');
 $q = param('q');
+$freeOnly = param('free') === '1';
 $sort = param('sort') ?: 'newest';
 $sortOptions = [
     'newest' => 'l.created_at DESC',
@@ -33,6 +34,9 @@ if ($q !== '') {
 } elseif ($activeCategoryName) {
     $page_title = $activeCategoryName . ' for Teachers';
     $page_description = 'Browse ' . $activeCategoryName . ' listings from verified teachers — buy, sell, and exchange classroom supplies affordably.';
+} elseif ($freeOnly) {
+    $page_title = 'Free classroom supplies';
+    $page_description = 'Classroom supplies other teachers are giving away for free.';
 } else {
     $page_title = 'Browse Classroom Listings';
     $page_description = 'Browse classroom supplies, books, furniture, and STEM kits from verified teachers nationwide.';
@@ -57,6 +61,7 @@ if ($category) { $conditions[] = 'c.slug = ?'; $params[] = $category; }
 if ($grade) { $conditions[] = 'l.grade_level = ?'; $params[] = $grade; }
 if ($condition) { $conditions[] = 'l.condition_type = ?'; $params[] = $condition; }
 if ($shipping) { $conditions[] = "(l.shipping_type = ? OR l.shipping_type = 'both')"; $params[] = $shipping; }
+if ($freeOnly) { $conditions[] = 'l.price = 0'; }
 if ($q) { $conditions[] = '(l.title LIKE ? OR l.description LIKE ?)'; $params[] = "%$q%"; $params[] = "%$q%"; }
 
 $sql = "SELECT l.*, u.name AS seller_name, u.is_verified AS seller_verified, c.name AS category_name,

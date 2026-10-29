@@ -80,8 +80,8 @@ uploaded content lives only on the live server and is never overwritten by a dep
 ## Customizing the site
 
 **Admin → Branding & Homepage** edits the hero copy, promo card, trust-bar stats, accent color, and
-footer — live immediately, no redeploy. **Admin → Site Feature Toggles** controls the seasonal-hub
-pill bar and the free-surplus banner. **Admin → Category Manager** controls the categories used
+footer — live immediately, no redeploy. **Admin → Show & Hide** has an on/off switch for every menu link, header button,
+homepage section and footer piece, plus the menu bar alignment (centered by default). **Admin → Category Manager** controls the categories used
 across browse/post-listing.
 
 ## Local development

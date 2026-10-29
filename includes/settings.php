@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/db.php';
 
-const SETTING_KEYS = ['branding', 'header', 'homepage', 'fees', 'seasonal_hub', 'footer', 'cron', 'mail_delivery'];
+const SETTING_KEYS = ['branding', 'header', 'homepage', 'fees', 'seasonal_hub', 'footer', 'cron', 'mail_delivery', 'visibility'];
 
 function default_settings(): array
 {
@@ -30,6 +30,18 @@ function default_settings(): array
                 ['imageUrl' => 'https://images.unsplash.com/photo-1588075592405-d3d4f0846961?w=1600&h=900&fit=crop&auto=format&q=80', 'alt' => 'Teacher reading a story to young students seated on the floor'],
                 ['imageUrl' => 'https://images.unsplash.com/photo-1571260899304-425eee4c7efc?w=1600&h=900&fit=crop&auto=format&q=80', 'alt' => 'High school students studying together in class'],
                 ['imageUrl' => 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=1600&h=900&fit=crop&auto=format&q=80', 'alt' => 'Empty classroom with rows of desks and a chalkboard'],
+            ],
+            'heroPoints' => [
+                ['icon' => 'badge-check', 'label' => 'Verified Educator badges', 'enabled' => true],
+                ['icon' => 'truck', 'label' => 'Ship it or pick up at school', 'enabled' => true],
+                ['icon' => 'gift', 'label' => 'Free giveaways welcome', 'enabled' => true],
+            ],
+            'heroPrimaryLabel' => 'Browse listings',
+            'heroSecondaryLabel' => 'List something for free',
+            'steps' => [
+                ['title' => 'Find what your class needs', 'text' => 'Search by subject, grade and condition, or save a wishlist and share it with families.', 'enabled' => true],
+                ['title' => 'Pay the way your school does', 'text' => "Card, PayPal or a school purchase order. If an item doesn't show up or isn't as described, tell us and we'll sort it out.", 'enabled' => true],
+                ['title' => 'Ship it or meet at school', 'text' => 'Each seller chooses shipping, local pickup, or both. Pickup is often the easiest way to move furniture.', 'enabled' => true],
             ],
             'trustHeadline' => 'A simpler way to stock your classroom',
             'trustBadgeState' => '',
@@ -84,6 +96,36 @@ function default_settings(): array
         ],
         'cron' => [
             'secret' => '',
+        ],
+        // Admin -> Show & Hide. Every switch defaults to on, so a site that has never saved this
+        // looks exactly as it did before the page existed.
+        'visibility' => [
+            'menuAlign' => 'center',
+            'menuBar' => true,
+            'menuLinks' => true,
+            'seasonalPills' => true,
+            'headerSearch' => true,
+            'headerPostButton' => true,
+            'headerNotifications' => true,
+            'headerWishlist' => true,
+            'headerCart' => true,
+            'homeHero' => true,
+            'homeHeroBadge' => true,
+            'homeHeroButtons' => true,
+            'homeHeroPoints' => true,
+            'homeWhy' => true,
+            'homeWhyBadges' => true,
+            'homeWhySteps' => true,
+            'homeCategories' => true,
+            'homeListings' => true,
+            'homeRecentlyViewed' => true,
+            'footerFeatures' => true,
+            'footerAbout' => true,
+            'footerEmail' => true,
+            'footerSocial' => true,
+            'footerCategories' => true,
+            'footerHelp' => true,
+            'footerCopyright' => true,
         ],
         'mail_delivery' => [
             'method' => 'resend',

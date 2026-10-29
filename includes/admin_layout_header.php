@@ -8,6 +8,8 @@ $currentPage = basename($_SERVER['SCRIPT_NAME']);
 $navItems = [
     'index.php' => ['icon' => 'layout-grid', 'label' => 'Executive Dashboard'],
     'workbook.php' => ['icon' => 'book', 'label' => 'Workbook'],
+    'feature-toggles.php' => ['icon' => 'toggle', 'label' => 'Show & Hide'],
+    'branding.php' => ['icon' => 'palette', 'label' => 'Branding & Homepage'],
     'risk.php' => ['icon' => 'alert-triangle', 'label' => 'Safety & Risk Monitor'],
     'listings.php' => ['icon' => 'package', 'label' => 'Listing Manager'],
     'orders.php' => ['icon' => 'file-bar', 'label' => 'Order Manager'],
@@ -23,9 +25,7 @@ $navItems = [
     'email-templates.php' => ['icon' => 'message', 'label' => 'Email Template Studio'],
     'email-drips.php' => ['icon' => 'send', 'label' => 'Email Drip Campaigns'],
     'financial.php' => ['icon' => 'file-bar', 'label' => 'Financial & Tax Reporting'],
-    'branding.php' => ['icon' => 'palette', 'label' => 'Branding & Homepage'],
     'blog.php' => ['icon' => 'book', 'label' => 'Blog'],
-    'feature-toggles.php' => ['icon' => 'toggle', 'label' => 'Site Feature Toggles'],
     'audit-log.php' => ['icon' => 'history', 'label' => 'Admin Audit Log'],
 ];
 $pageTitle = isset($page_title) ? $page_title . ' — Admin' : 'Admin';

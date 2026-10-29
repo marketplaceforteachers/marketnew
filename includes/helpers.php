@@ -424,3 +424,17 @@ function accent_headline(string $text): string
 {
     return preg_replace('/\*([^*]+)\*/', '<em class="serif-accent">$1</em>', e($text));
 }
+
+/** Is a section switched on in Admin -> Show & Hide? Unknown keys count as on. */
+function visible(string $key): bool
+{
+    static $flags = null;
+    $flags ??= get_setting('visibility');
+    return !array_key_exists($key, $flags) || (bool) $flags[$key];
+}
+
+/** Is a single editable list item (menu link, badge, footer link...) switched on? Items saved before on/off existed have no flag and count as on. */
+function shown(array $item): bool
+{
+    return !array_key_exists('enabled', $item) || (bool) $item['enabled'];
+}

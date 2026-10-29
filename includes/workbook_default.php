@@ -36,7 +36,8 @@ If you forget your password, use "Forgot your password?" on the sign-in page and
 - **Dispute Arbitration**: problems between buyers and sellers.
 - **Seller Payouts**: send sellers their money after a sale.
 - **Email Template Studio**: email settings, the wording of every email, and a log of every email sent.
-- **Branding & Homepage / Blog / Category Manager / Site Feature Toggles**: what the public sees.
+- **Show & Hide**: switch any part of the site (menu links, header buttons, homepage sections, footer pieces) on or off.
+- **Branding & Homepage / Blog / Category Manager**: the words and pictures the public sees.
 - **Workbook**: this guide. Edit any chapter so it matches how *you* run things.
 MD,
         ],
@@ -201,7 +202,7 @@ Edit the headline, intro, badge chips and footer in **Branding & Homepage**. Cha
 
 ## Categories and seasonal pills
 
-Add or rename categories in **Category Manager**. Turn the seasonal pills and the "Free stuff only" link on or off in **Site Feature Toggles**.
+Add or rename categories in **Category Manager**. Turn the seasonal pills, the "Free stuff only" link, and any other part of the site on or off in **Show & Hide**.
 MD,
         ],
         [

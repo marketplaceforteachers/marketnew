@@ -69,20 +69,32 @@ if (($_SERVER['REQUEST_URI'] ?? '') === '/' || basename($_SERVER['SCRIPT_NAME'] 
   <div class="bar">
     <?= render_logo($branding, 'dark') ?>
 
+    <?php if (visible('headerSearch')): ?>
     <form class="search-form" action="/browse.php" method="get">
       <span style="padding-left:.6rem;color:#94a3b8;"><?= icon('search') ?></span>
       <input type="text" name="q" placeholder="Search classroom supplies..." value="<?= old('q', $_GET['q'] ?? '') ?>">
     </form>
+    <?php else: ?>
+    <span class="header-spacer"></span>
+    <?php endif; ?>
 
+    <?php if (visible('headerPostButton')): ?>
     <a href="/post-listing.php" class="btn btn-red"><?= icon('plus-circle') ?> Post Listing</a>
+    <?php endif; ?>
 
     <div class="flex items-center gap-2" style="position:relative;">
-      <a href="<?= $me ? '/messages.php' : '/login.php' ?>" class="icon-btn"><?= icon('bell') ?></a>
-      <a href="/wishlists.php" class="icon-btn"><?= icon('heart') ?></a>
-      <a href="/cart.php" class="icon-btn">
+      <?php if (visible('headerNotifications')): ?>
+      <a href="<?= $me ? '/messages.php' : '/login.php' ?>" class="icon-btn" aria-label="Messages"><?= icon('bell') ?></a>
+      <?php endif; ?>
+      <?php if (visible('headerWishlist')): ?>
+      <a href="/wishlists.php" class="icon-btn" aria-label="Wishlists"><?= icon('heart') ?></a>
+      <?php endif; ?>
+      <?php if (visible('headerCart')): ?>
+      <a href="/cart.php" class="icon-btn" aria-label="Cart">
         <?= icon('shopping-bag') ?>
         <span class="icon-badge" id="cart-badge" style="display:none;">0</span>
       </a>
+      <?php endif; ?>
 
       <?php if ($me): ?>
         <div class="account-menu">
@@ -118,22 +130,27 @@ if (($_SERVER['REQUEST_URI'] ?? '') === '/' || basename($_SERVER['SCRIPT_NAME'] 
   </div>
 </header>
 
-<nav class="primary-nav">
+<?php
+$menuLinks = visible('menuLinks') ? array_filter($headerSettings['primaryNav'], 'shown') : [];
+$hubPills = visible('seasonalPills') ? array_filter($seasonal['items'] ?? [], fn($i) => !empty($i['enabled'])) : [];
+$showFreeBanner = !empty($seasonal['freeSurplusBannerEnabled']);
+?>
+<?php if (visible('menuBar') && ($menuLinks || $hubPills || $showFreeBanner)): ?>
+<nav class="primary-nav <?= ($settings['visibility']['menuAlign'] ?? 'center') === 'left' ? 'nav-left' : 'nav-center' ?>">
   <div class="bar">
-    <?php foreach ($headerSettings['primaryNav'] as $navItem): ?>
+    <?php foreach ($menuLinks as $navItem): ?>
       <a href="<?= e($navItem['href']) ?>"><?= e($navItem['label']) ?></a>
     <?php endforeach; ?>
-    <?php if (!empty($seasonal['items'])): ?>
-      <span class="primary-nav-sep"></span>
-      <?php foreach ($seasonal['items'] as $item): if (empty($item['enabled'])) continue; ?>
-        <a href="/browse.php?hub=<?= e($item['key']) ?>" class="hub-pill <?= ($_GET['hub'] ?? 'all') === $item['key'] ? 'active' : '' ?>"><?= e($item['label']) ?></a>
-      <?php endforeach; ?>
-      <?php if (!empty($seasonal['freeSurplusBannerEnabled'])): ?>
-        <span class="hub-banner"><?= icon('gift') ?> <?= e($seasonal['freeSurplusBannerText']) ?></span>
-      <?php endif; ?>
+    <?php if ($menuLinks && ($hubPills || $showFreeBanner)): ?><span class="primary-nav-sep"></span><?php endif; ?>
+    <?php foreach ($hubPills as $item): ?>
+      <a href="/browse.php?hub=<?= e($item['key']) ?>" class="hub-pill <?= ($_GET['hub'] ?? 'all') === $item['key'] ? 'active' : '' ?>"><?= e($item['label']) ?></a>
+    <?php endforeach; ?>
+    <?php if ($showFreeBanner): ?>
+      <a href="/browse.php?free=1" class="hub-banner"><?= icon('gift') ?> <?= e($seasonal['freeSurplusBannerText']) ?></a>
     <?php endif; ?>
   </div>
 </nav>
+<?php endif; ?>
 
 <main>
 <?php foreach ($flashes as $f): ?>

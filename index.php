@@ -24,30 +24,39 @@ $listings = db()->query(
 )->fetchAll();
 ?>
 
+<?php if (visible('homeHero')): ?>
 <section class="hero hero-centered" id="hero-slideshow" data-interval="6500">
   <div class="hero-slides">
-    <?php foreach ($homepage['heroSlides'] as $i => $slide): ?>
+    <?php $heroSlides = array_values(array_filter($homepage['heroSlides'], 'shown')); ?>
+    <?php foreach ($heroSlides as $i => $slide): ?>
       <div class="hero-slide <?= $i === 0 ? 'active' : '' ?>" style="background-image:url('<?= e($slide['imageUrl']) ?>');" role="img" aria-label="<?= e($slide['alt']) ?>"></div>
     <?php endforeach; ?>
     <div class="hero-slide-overlay"></div>
   </div>
   <div class="container">
     <div class="hero-inner">
+      <?php if (visible('homeHeroBadge') && $homepage['badgeText'] !== ''): ?>
       <span class="pill-badge"><span class="pill-dot"></span> <?= e($homepage['badgeText']) ?></span>
+      <?php endif; ?>
       <h1><?= accent_headline($homepage['heroHeadline']) ?></h1>
       <p class="lead"><?= e($homepage['heroSubtext']) ?></p>
+      <?php if (visible('homeHeroButtons')): ?>
       <div class="hero-actions">
-        <a href="/browse.php" class="btn btn-hero-primary btn-lg">Browse listings <?= icon('arrow-right') ?></a>
-        <a href="/post-listing.php" class="btn btn-ghost-light btn-lg"><?= icon('plus-circle') ?> List something for free</a>
+        <?php if ($homepage['heroPrimaryLabel'] !== ''): ?><a href="/browse.php" class="btn btn-hero-primary btn-lg"><?= e($homepage['heroPrimaryLabel']) ?> <?= icon('arrow-right') ?></a><?php endif; ?>
+        <?php if ($homepage['heroSecondaryLabel'] !== ''): ?><a href="/post-listing.php" class="btn btn-ghost-light btn-lg"><?= icon('plus-circle') ?> <?= e($homepage['heroSecondaryLabel']) ?></a><?php endif; ?>
       </div>
+      <?php endif; ?>
+      <?php $heroPoints = visible('homeHeroPoints') ? array_filter($homepage['heroPoints'], 'shown') : []; ?>
+      <?php if ($heroPoints): ?>
       <div class="hero-points">
-        <span><?= icon('badge-check') ?> Verified Educator badges</span>
-        <span><?= icon('truck') ?> Ship it or pick up at school</span>
-        <span><?= icon('gift') ?> Free giveaways welcome</span>
+        <?php foreach ($heroPoints as $point): ?>
+          <span><?= icon($point['icon']) ?> <?= e($point['label']) ?></span>
+        <?php endforeach; ?>
       </div>
-      <?php if (count($homepage['heroSlides']) > 1): ?>
+      <?php endif; ?>
+      <?php if (count($heroSlides) > 1): ?>
         <div class="hero-dots" role="tablist" aria-label="Hero image slides">
-          <?php foreach ($homepage['heroSlides'] as $i => $slide): ?>
+          <?php foreach ($heroSlides as $i => $slide): ?>
             <button type="button" class="hero-dot <?= $i === 0 ? 'active' : '' ?>" data-slide="<?= $i ?>" aria-label="Show slide <?= $i + 1 ?>"></button>
           <?php endforeach; ?>
         </div>
@@ -55,12 +64,16 @@ $listings = db()->query(
     </div>
   </div>
 </section>
+<?php endif; ?>
 
+<?php $steps = visible('homeWhySteps') ? array_values(array_filter($homepage['steps'], 'shown')) : []; ?>
+<?php if (visible('homeWhy')): ?>
 <section class="trust-bar">
-  <div class="container grid">
+  <div class="container grid <?= $steps ? '' : 'trust-single' ?>">
     <div class="trust-copy">
+      <?php $whyBadges = visible('homeWhyBadges') ? array_filter($homepage['trustBadges'], 'shown') : []; ?>
       <div class="flex gap-2" style="flex-wrap:wrap;">
-        <?php foreach ($homepage['trustBadges'] as $tb): ?>
+        <?php foreach ($whyBadges as $tb): ?>
           <span class="badge-chip badge-<?= e($tb['tone']) ?>"><?= icon($tb['icon']) ?> <?= e($tb['label']) ?></span>
         <?php endforeach; ?>
       </div>
@@ -68,24 +81,21 @@ $listings = db()->query(
       <p class="trust-text"><?= e($homepage['trustDescription']) ?></p>
       <a href="/how-it-works.php" class="link-light mt-4">How it works <?= icon('arrow-right') ?></a>
     </div>
+    <?php if ($steps): ?>
     <ol class="steps-card">
+      <?php foreach ($steps as $i => $step): ?>
       <li>
-        <span class="step-num">1</span>
-        <div><h3>Find what your class needs</h3><p>Search by subject, grade and condition, or save a wishlist and share it with families.</p></div>
+        <span class="step-num"><?= $i + 1 ?></span>
+        <div><h3><?= e($step['title']) ?></h3><p><?= e($step['text']) ?></p></div>
       </li>
-      <li>
-        <span class="step-num">2</span>
-        <div><h3>Pay the way your school does</h3><p>Card, PayPal or a school purchase order. If an item doesn't show up or isn't as described, tell us and we'll sort it out.</p></div>
-      </li>
-      <li>
-        <span class="step-num">3</span>
-        <div><h3>Ship it or meet at school</h3><p>Each seller chooses shipping, local pickup, or both. Pickup is often the easiest way to move furniture.</p></div>
-      </li>
+      <?php endforeach; ?>
     </ol>
+    <?php endif; ?>
   </div>
 </section>
+<?php endif; ?>
 
-<?php if ($categories): ?>
+<?php if ($categories && visible('homeCategories')): ?>
 <?php
 $categoryLimit = 10;
 $shownCategories = array_slice($categories, 0, $categoryLimit);
@@ -115,6 +125,7 @@ $moreCategoriesCount = max(0, count($categories) - $categoryLimit);
 </section>
 <?php endif; ?>
 
+<?php if (visible('homeListings')): ?>
 <section class="section-tint py-8">
   <div class="container">
     <div class="flex justify-between items-center">
@@ -133,6 +144,9 @@ $moreCategoriesCount = max(0, count($categories) - $categoryLimit);
   </div>
 </section>
 
+<?php endif; ?>
+
+<?php if (visible('homeRecentlyViewed')): ?>
 <section class="py-8 hidden" id="recently-viewed">
   <div class="container">
     <span class="section-eyebrow">Pick up where you left off</span>
@@ -140,5 +154,6 @@ $moreCategoriesCount = max(0, count($categories) - $categoryLimit);
     <div class="grid grid-4 mt-4" id="recently-viewed-list"></div>
   </div>
 </section>
+<?php endif; ?>
 
 <?php require __DIR__ . '/includes/layout_footer.php'; ?>
