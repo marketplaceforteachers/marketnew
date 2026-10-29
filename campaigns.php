@@ -9,7 +9,7 @@ require __DIR__ . '/includes/layout_header.php';
   <div class="flex justify-between items-center" style="flex-wrap:wrap;">
     <div>
       <h1 class="text-xl flex items-center gap-2"><?= icon('heart') ?> Classroom Fundraising</h1>
-      <p class="text-sm text-muted mt-1">Back a classroom project or book drive with a tax-deductible donation.</p>
+      <p class="text-sm text-muted mt-1">Chip in toward a classroom project or book drive. Every bit helps.</p>
     </div>
     <?php if ($me && $me['role'] === 'teacher'): ?>
       <a href="/campaign-new.php" class="btn btn-amber"><?= icon('plus') ?> New Campaign</a>

@@ -45,7 +45,6 @@ function wrap_email_letterhead(string $bodyHtml, string $preheader = ''): string
     $hasComSuffix = (bool) preg_match('/\.com$/i', $siteName);
     $year = date('Y');
     $supportEmail = $footer['supportEmail'] ?? '';
-    $address = $footer['address'] ?? '';
 
     $wordmark = '<span style="color:#0f172a;">' . e($split['first']) . '</span>'
         . ($split['rest'] ? '<span style="color:#d97706;">' . e($split['rest']) . '</span>' : '')
@@ -70,7 +69,6 @@ function wrap_email_letterhead(string $bodyHtml, string $preheader = ''): string
         </td></tr>
         <tr><td style="background:#f8fafc;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 10px 10px;padding:20px 28px;text-align:center;font-size:11px;color:#94a3b8;line-height:1.6;">
           &copy; <?= $year ?> <?= e($siteName) ?>. All rights reserved.<br>
-          <?php if ($address): ?><?= e($address) ?><br><?php endif; ?>
           <?php if ($supportEmail): ?>Questions? <a href="mailto:<?= e($supportEmail) ?>" style="color:#2563eb;">Contact support</a><?php endif; ?>
         </td></tr>
       </table>

@@ -33,19 +33,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'state' => trim(post('state')) ?: null,
         ];
         if (strlen($firstName) < 1 || strlen($lastName) < 1) {
-            $error = 'First and last name are required.';
+            $error = 'Please add your first and last name.';
         } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $error = 'Please enter a valid email address.';
         } elseif (strlen($password) < 8) {
-            $error = 'Password must be at least 8 characters.';
+            $error = 'Your password needs at least 8 characters.';
         } elseif (!trim(post('phone'))) {
-            $error = 'Phone number is required.';
+            $error = 'Please add a phone number.';
         } elseif (!trim(post('zip_code'))) {
-            $error = 'ZIP/postal code is required.';
+            $error = 'Please add your ZIP code.';
         } else {
             $user = register_user($firstName, $lastName, $email, $password, $role, $profile);
             if (!$user) {
-                $error = 'An account with that email already exists.';
+                $error = "There's already an account with that email. Try logging in instead.";
                 $mode = 'register';
             } else {
                 // The confirmation email goes first: it's the one the new member actually needs.
@@ -70,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $user = attempt_login($email, $password);
             if (!$user) {
                 record_login_attempt($ip);
-                $error = 'Invalid email or password.';
+                $error = "That email and password don't match. Please try again.";
             } else {
                 redirect(safe_local_redirect_path(post('redirect_to', '/index.php')));
             }
@@ -82,7 +82,9 @@ $page_title = 'Log In';
 require __DIR__ . '/includes/layout_header.php';
 ?>
 <div class="container-sm py-10">
-  <div class="card card-pad" style="max-width:420px;margin:0 auto;">
+  <div class="card card-pad" style="max-width:440px;margin:0 auto;">
+    <h1 class="section-title text-center"><?= $mode === 'register' ? 'Join the <em class="serif-accent">teachers’ market</em>' : 'Welcome <em class="serif-accent">back</em>' ?></h1>
+    <p class="text-sm text-muted text-center mt-2 mb-4"><?= $mode === 'register' ? "It takes about a minute. We'll email you a link to confirm your address." : 'Log in to check your orders, messages and listings.' ?></p>
     <div class="flex" style="background:var(--surface-2);border-radius:.5rem;padding:.25rem;">
       <a href="/login.php?mode=login" class="btn w-full" style="justify-content:center;background:<?= $mode === 'login' ? 'var(--royal-600)' : 'transparent' ?>;color:<?= $mode === 'login' ? '#fff' : 'var(--slate-500)' ?>;">Log In</a>
       <a href="/login.php?mode=register" class="btn w-full" style="justify-content:center;background:<?= $mode === 'register' ? 'var(--royal-600)' : 'transparent' ?>;color:<?= $mode === 'register' ? '#fff' : 'var(--slate-500)' ?>;">Sign Up</a>
@@ -112,8 +114,8 @@ require __DIR__ . '/includes/layout_header.php';
             document.getElementById('account-type-teacher').classList.toggle('hidden', this.value !== 'teacher');
             document.getElementById('account-type-buyer').classList.toggle('hidden', this.value === 'teacher');
           ">
-            <option value="teacher" <?= $oldRole === 'teacher' ? 'selected' : '' ?>>Teacher (selling &amp; buying)</option>
-            <option value="buyer" <?= $oldRole === 'buyer' ? 'selected' : '' ?>>Buyer / Parent / Donor</option>
+            <option value="teacher" <?= $oldRole === 'teacher' ? 'selected' : '' ?>>A teacher or school staff</option>
+            <option value="buyer" <?= $oldRole === 'buyer' ? 'selected' : '' ?>>A parent, donor or other buyer</option>
           </select>
         </div>
         <div class="field <?= $oldRole === 'teacher' ? '' : 'hidden' ?>" id="account-type-teacher">

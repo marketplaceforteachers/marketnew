@@ -23,7 +23,7 @@ $posts = db()->query(
   <div class="container">
     <span class="section-eyebrow">From the team</span>
     <h1 class="text-2xl mt-1">Classroom &amp; Teaching Blog</h1>
-    <p class="text-sm text-muted mt-2" style="max-width:46rem;">Tips, classroom ideas, and education news for teachers.</p>
+    <p class="text-sm text-muted mt-2" style="max-width:46rem;">Classroom ideas, money-saving tips and the education news worth reading.</p>
   </div>
 </div>
 

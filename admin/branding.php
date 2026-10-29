@@ -60,8 +60,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($group === 'footer') {
         set_setting('footer', [
             'description' => trim(post('description')),
-            'address' => trim(post('address')),
-            'phone' => trim(post('phone')),
             'supportEmail' => trim(post('supportEmail')),
             'features' => zip_post_rows(['icon' => 'ff_icon', 'color' => 'ff_color', 'title' => 'ff_title', 'desc' => 'ff_desc']),
             'trustLinks' => zip_post_rows(['label' => 'tl_label', 'href' => 'tl_href']),
@@ -131,7 +129,7 @@ function icon_datalist(string $id, array $keys): string
   <?= csrf_field() ?><input type="hidden" name="group" value="homepage_hero">
   <h2 class="text-lg">Hero section</h2>
   <div class="field mt-2"><label>Badge Text</label><input type="text" name="badgeText" value="<?= e($homepage['badgeText']) ?>"></div>
-  <div class="field"><label>Hero Headline</label><input type="text" name="heroHeadline" value="<?= e($homepage['heroHeadline']) ?>"></div>
+  <div class="field"><label>Hero Headline <span class="text-muted" style="text-transform:none;font-weight:400;">(wrap words in *asterisks* for the accent style)</span></label><input type="text" name="heroHeadline" value="<?= e($homepage['heroHeadline']) ?>"></div>
   <div class="field"><label>Hero Subtext</label><textarea name="heroSubtext" rows="3"><?= e($homepage['heroSubtext']) ?></textarea></div>
 
   <h3 class="text-lg mt-4">Background slideshow</h3>
@@ -159,19 +157,12 @@ function icon_datalist(string $id, array $keys): string
 
 <form method="post" class="card card-pad mt-4">
   <?= csrf_field() ?><input type="hidden" name="group" value="homepage_trust">
-  <h2 class="text-lg">Trust bar</h2>
-  <div class="field mt-2"><label>Trust Headline</label><input type="text" name="trustHeadline" value="<?= e($homepage['trustHeadline']) ?>"></div>
-  <div class="grid grid-2">
-    <div class="field"><label>Badge / State Line</label><input type="text" name="trustBadgeState" value="<?= e($homepage['trustBadgeState']) ?>"></div>
-    <div class="field"><label>Rating (e.g. 4.9)</label><input type="number" step="0.1" name="trustRating" value="<?= e((string) $homepage['trustRating']) ?>"></div>
-    <div class="field"><label>Review Count</label><input type="number" name="trustReviewCount" value="<?= e((string) $homepage['trustReviewCount']) ?>"></div>
-    <div class="field"><label>Satisfaction %</label><input type="number" step="0.1" name="trustSatisfactionPct" value="<?= e((string) $homepage['trustSatisfactionPct']) ?>"></div>
-    <div class="field"><label>Dispute Rate Text</label><input type="text" name="trustDisputeRate" value="<?= e($homepage['trustDisputeRate']) ?>"></div>
-    <div class="field"><label>Districts Text</label><input type="text" name="trustDistricts" value="<?= e($homepage['trustDistricts']) ?>"></div>
-  </div>
-  <div class="field"><label>Trust Description</label><textarea name="trustDescription" rows="3"><?= e($homepage['trustDescription']) ?></textarea></div>
+  <h2 class="text-lg">"Why teachers use it" section</h2>
+  <p class="text-xs text-muted mt-1">The band under the hero. Wrap a few words of the headline in *asterisks* to show them in the accent style.</p>
+  <div class="field mt-2"><label>Headline</label><input type="text" name="trustHeadline" value="<?= e($homepage['trustHeadline']) ?>"></div>
+  <div class="field"><label>Paragraph</label><textarea name="trustDescription" rows="3"><?= e($homepage['trustDescription']) ?></textarea></div>
 
-  <h3 class="text-lg mt-4">Trust badge chips</h3>
+  <h3 class="text-lg mt-4">Badge chips</h3>
   <div id="tb-rows-list" class="stack mt-2">
     <?php foreach ($homepage['trustBadges'] as $tb): ?>
       <div class="dynamic-row flex gap-2 mt-2">
@@ -205,8 +196,6 @@ function icon_datalist(string $id, array $keys): string
   <h2 class="text-lg">Footer</h2>
   <div class="field mt-2"><label>Description</label><textarea name="description" rows="2"><?= e($footer['description'] ?? '') ?></textarea></div>
   <div class="grid grid-2">
-    <div class="field"><label>Address</label><input type="text" name="address" value="<?= e($footer['address']) ?>"></div>
-    <div class="field"><label>Phone</label><input type="text" name="phone" value="<?= e($footer['phone'] ?? '') ?>"></div>
     <div class="field"><label>Support Email</label><input type="email" name="supportEmail" value="<?= e($footer['supportEmail']) ?>"></div>
   </div>
 

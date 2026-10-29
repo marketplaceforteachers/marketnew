@@ -9,7 +9,7 @@ require __DIR__ . '/includes/layout_header.php';
   <div class="flex justify-between items-center" style="flex-wrap:wrap;">
     <div>
       <h1 class="text-xl flex items-center gap-2"><?= icon('gift') ?> Classroom Wishlists</h1>
-      <p class="text-sm text-muted mt-1">Support a teacher's classroom by funding items on their registry.</p>
+      <p class="text-sm text-muted mt-1">Pick something off a teacher's list and it goes straight to their classroom.</p>
     </div>
     <?php if ($me && $me['role'] === 'teacher'): ?>
       <a href="/wishlist-new.php" class="btn btn-primary"><?= icon('plus') ?> New Wishlist</a>

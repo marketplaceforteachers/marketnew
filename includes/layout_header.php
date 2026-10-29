@@ -21,7 +21,6 @@ $organizationSchema = [
     'url' => $siteOrigin . '/',
     'description' => $footerForSchema['description'] ?? $branding['tagline'],
     'email' => $footerForSchema['supportEmail'] ?? null,
-    'telephone' => $footerForSchema['phone'] ?? null,
 ];
 $organizationSchema = array_filter($organizationSchema, fn($v) => $v !== null && $v !== '');
 $siteSchemas = [$organizationSchema];
@@ -58,7 +57,10 @@ if (($_SERVER['REQUEST_URI'] ?? '') === '/' || basename($_SERVER['SCRIPT_NAME'] 
 <meta name="twitter:description" content="<?= e($pageDescription) ?>">
 <?php if (!empty($page_image)): ?><meta property="og:image" content="<?= e($page_image) ?>"><meta name="twitter:image" content="<?= e($page_image) ?>"><?php endif; ?>
 <link rel="icon" type="image/svg+xml" href="/assets/img/favicon.svg">
-<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@1,600;1,700&display=swap">
+<link rel="stylesheet" href="/assets/css/style.css?v=<?= @filemtime(__DIR__ . '/../assets/css/style.css') ?: '1' ?>">
 <style>:root{--accent:<?= e($branding['accentColor']) ?>;}</style>
 <?php foreach (array_merge($siteSchemas, $page_jsonld ?? []) as $schema): ?><script type="application/ld+json"><?= json_encode_for_script($schema) ?></script><?php endforeach; ?>
 </head>

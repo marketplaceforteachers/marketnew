@@ -28,13 +28,9 @@ $footerCategories = db()->query('SELECT name, slug FROM categories ORDER BY name
           <?= render_logo($branding, 'dark') ?>
           <p class="footer-desc"><?= e($footer['description']) ?></p>
           <ul class="footer-contact">
-            <li><?= icon('map-pin') ?> <span><strong style="color:#fff;">HQ Address:</strong> <?= e($footer['address']) ?></span></li>
-            <?php if (!empty($footer['phone'])): ?>
-              <li><?= icon('phone') ?> <span><strong style="color:#fff;">Teacher Helpline:</strong> <?= e($footer['phone']) ?></span></li>
-            <?php endif; ?>
             <li><?= icon('mail') ?> <a href="mailto:<?= e($footer['supportEmail']) ?>" style="display:inline;padding:0;color:var(--slate-300);"><?= e($footer['supportEmail']) ?></a></li>
           </ul>
-          <p class="footer-social-label">Connect with our educator community</p>
+          <p class="footer-social-label">Follow along</p>
           <div class="footer-social">
             <?php foreach ($footer['socialLinks'] as $s): ?>
               <a href="<?= e($s['href']) ?>"><?= icon('share') ?> <?= e($s['label']) ?></a>
@@ -43,14 +39,14 @@ $footerCategories = db()->query('SELECT name, slug FROM categories ORDER BY name
         </div>
 
         <div class="footer-col">
-          <h4>Classroom Categories</h4>
+          <h4>Shop by category</h4>
           <?php foreach ($footerCategories as $c): ?>
             <a href="/browse.php?category=<?= e($c['slug']) ?>"><?= e($c['name']) ?></a>
           <?php endforeach; ?>
         </div>
 
         <div class="footer-col">
-          <h4>Trust &amp; Educator Center</h4>
+          <h4>Help</h4>
           <?php foreach ($footer['trustLinks'] as $l): ?>
             <a href="<?= e($l['href']) ?>"><?= e($l['label']) ?></a>
           <?php endforeach; ?>
@@ -66,6 +62,6 @@ $footerCategories = db()->query('SELECT name, slug FROM categories ORDER BY name
   </div>
 </footer>
 
-<script src="/assets/js/app.js"></script>
+<script src="/assets/js/app.js?v=<?= @filemtime(__DIR__ . '/../assets/js/app.js') ?: '1' ?>"></script>
 </body>
 </html>

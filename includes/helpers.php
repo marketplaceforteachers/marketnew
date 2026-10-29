@@ -418,3 +418,9 @@ function format_upload_limit(): string
     $mb = upload_limit_bytes() / 1024 / 1024;
     return ($mb >= 1 ? rtrim(rtrim(number_format($mb, 1), '0'), '.') . 'MB' : round($mb * 1024) . 'KB');
 }
+
+/** Escapes a short admin-editable headline, turning *these words* into the italic serif accent. */
+function accent_headline(string $text): string
+{
+    return preg_replace('/\*([^*]+)\*/', '<em class="serif-accent">$1</em>', e($text));
+}

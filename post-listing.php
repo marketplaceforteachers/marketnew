@@ -72,8 +72,8 @@ $page_title = 'Post a Listing';
 require __DIR__ . '/includes/layout_header.php';
 ?>
 <div class="container-sm py-8">
-  <h1 class="text-xl">Post a Free Teacher Listing</h1>
-  <p class="text-sm text-muted mt-1">Zero listing fees. Your item goes live immediately.</p>
+  <h1 class="section-title">List something <em class="serif-accent">for free</em></h1>
+  <p class="text-sm text-muted mt-1">It's free to post, and your listing goes up as soon as you hit the button.</p>
 
   <form method="post" enctype="multipart/form-data" class="card card-pad mt-4">
     <?= csrf_field() ?>

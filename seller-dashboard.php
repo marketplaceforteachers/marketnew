@@ -98,7 +98,7 @@ require __DIR__ . '/includes/layout_header.php';
 
   <div class="card card-pad mt-4">
     <h2 class="text-lg flex items-center gap-2"><?= icon('wallet') ?> Payouts</h2>
-    <p class="text-sm text-muted mt-1">Connect a Stripe account so we can pay you out after each sale.</p>
+    <p class="text-sm text-muted mt-1">Connect a Stripe account and we'll send your money there after each sale.</p>
     <?php if ($me['stripe_account_id']): ?>
       <p class="text-xs mt-2" style="color:var(--emerald-600);font-weight:700;">Stripe account connected.</p>
     <?php endif; ?>

@@ -2,7 +2,7 @@
 require_once __DIR__ . '/includes/bootstrap.php';
 
 $homepage = get_setting('homepage');
-$page_title = 'Buy, Sell & Exchange Classroom Supplies';
+$page_title = 'Buy, sell and give away classroom supplies';
 $page_description = $homepage['heroSubtext'];
 // Force / and /index.php (and www vs. bare domain) to the same canonical URL so they're never
 // indexed as duplicates.
@@ -24,7 +24,7 @@ $listings = db()->query(
 )->fetchAll();
 ?>
 
-<section class="hero hero-centered" id="hero-slideshow" data-interval="5500">
+<section class="hero hero-centered" id="hero-slideshow" data-interval="6500">
   <div class="hero-slides">
     <?php foreach ($homepage['heroSlides'] as $i => $slide): ?>
       <div class="hero-slide <?= $i === 0 ? 'active' : '' ?>" style="background-image:url('<?= e($slide['imageUrl']) ?>');" role="img" aria-label="<?= e($slide['alt']) ?>"></div>
@@ -33,17 +33,17 @@ $listings = db()->query(
   </div>
   <div class="container">
     <div class="hero-inner">
-      <span class="pill-badge"><span style="width:6px;height:6px;border-radius:999px;background:#f87171;display:inline-block;"></span> <?= e($homepage['badgeText']) ?></span>
-      <h1><?= e($homepage['heroHeadline']) ?></h1>
+      <span class="pill-badge"><span class="pill-dot"></span> <?= e($homepage['badgeText']) ?></span>
+      <h1><?= accent_headline($homepage['heroHeadline']) ?></h1>
       <p class="lead"><?= e($homepage['heroSubtext']) ?></p>
-      <div class="flex gap-3 mt-5" style="flex-wrap:wrap;">
-        <a href="/browse.php" class="btn btn-hero-primary"><?= icon('chevron-right') ?> Browse Classroom Listings</a>
-        <a href="/post-listing.php" class="btn btn-ghost-light"><?= icon('plus-circle') ?> Post Free Teacher Listing</a>
+      <div class="hero-actions">
+        <a href="/browse.php" class="btn btn-hero-primary btn-lg">Browse listings <?= icon('arrow-right') ?></a>
+        <a href="/post-listing.php" class="btn btn-ghost-light btn-lg"><?= icon('plus-circle') ?> List something for free</a>
       </div>
-      <div class="flex gap-5 mt-7" style="flex-wrap:wrap;justify-content:center;color:#dbeafe;font-size:.875rem;">
-        <span class="flex items-center gap-2"><?= icon('shield') ?> 100% Verified Teachers</span>
-        <span class="flex items-center gap-2"><?= icon('truck') ?> Local &amp; Media Mail Ship</span>
-        <span class="flex items-center gap-2"><?= icon('piggy') ?> Save 50–80% vs Retail</span>
+      <div class="hero-points">
+        <span><?= icon('badge-check') ?> Verified Educator badges</span>
+        <span><?= icon('truck') ?> Ship it or pick up at school</span>
+        <span><?= icon('gift') ?> Free giveaways welcome</span>
       </div>
       <?php if (count($homepage['heroSlides']) > 1): ?>
         <div class="hero-dots" role="tablist" aria-label="Hero image slides">
@@ -58,28 +58,30 @@ $listings = db()->query(
 
 <section class="trust-bar">
   <div class="container grid">
-    <div>
+    <div class="trust-copy">
       <div class="flex gap-2" style="flex-wrap:wrap;">
         <?php foreach ($homepage['trustBadges'] as $tb): ?>
           <span class="badge-chip badge-<?= e($tb['tone']) ?>"><?= icon($tb['icon']) ?> <?= e($tb['label']) ?></span>
         <?php endforeach; ?>
       </div>
-      <h2 class="mt-4 text-2xl" style="color:#fff;"><?= e($homepage['trustHeadline']) ?></h2>
-      <span class="chip" style="background:var(--red-600);color:#fff;margin-top:.6rem;display:inline-block;"><?= e($homepage['trustBadgeState']) ?></span>
-      <p class="text-sm mt-3" style="color:var(--slate-300);max-width:34rem;"><?= e($homepage['trustDescription']) ?></p>
+      <h2 class="trust-headline"><?= accent_headline($homepage['trustHeadline']) ?></h2>
+      <p class="trust-text"><?= e($homepage['trustDescription']) ?></p>
+      <a href="/how-it-works.php" class="link-light mt-4">How it works <?= icon('arrow-right') ?></a>
     </div>
-    <div class="trust-score-card">
-      <div class="flex justify-between items-center">
-        <span class="text-xs font-bold text-muted" style="text-transform:uppercase;">Educator Trust Score</span>
-        <span class="chip" style="background:var(--amber-500);color:var(--slate-900);"><?= e($homepage['trustRating']) ?> ★</span>
-      </div>
-      <dl class="mt-3 text-sm" style="color:#fff;">
-        <div class="flex justify-between mt-2"><dt style="color:var(--slate-400);">Verified Educator Satisfaction:</dt><dd class="font-bold" style="color:var(--emerald-500);"><?= e($homepage['trustSatisfactionPct']) ?>% Positive</dd></div>
-        <div class="flex justify-between mt-2"><dt style="color:var(--slate-400);">Escrow Dispute Rate:</dt><dd class="font-bold" style="color:var(--emerald-500);"><?= e($homepage['trustDisputeRate']) ?></dd></div>
-        <div class="flex justify-between mt-2"><dt style="color:var(--slate-400);">School Districts Enrolled:</dt><dd class="font-bold" style="color:var(--amber-400);"><?= e($homepage['trustDistricts']) ?></dd></div>
-      </dl>
-      <a href="/browse.php" class="btn btn-amber w-full mt-4" style="justify-content:center;"><?= icon('check') ?> Read Verified Teacher Reviews (<?= e($homepage['trustReviewCount']) ?>)</a>
-    </div>
+    <ol class="steps-card">
+      <li>
+        <span class="step-num">1</span>
+        <div><h3>Find what your class needs</h3><p>Search by subject, grade and condition, or save a wishlist and share it with families.</p></div>
+      </li>
+      <li>
+        <span class="step-num">2</span>
+        <div><h3>Pay the way your school does</h3><p>Card, PayPal or a school purchase order. If an item doesn't show up or isn't as described, tell us and we'll sort it out.</p></div>
+      </li>
+      <li>
+        <span class="step-num">3</span>
+        <div><h3>Ship it or meet at school</h3><p>Each seller chooses shipping, local pickup, or both. Pickup is often the easiest way to move furniture.</p></div>
+      </li>
+    </ol>
   </div>
 </section>
 
@@ -94,7 +96,7 @@ $moreCategoriesCount = max(0, count($categories) - $categoryLimit);
     <div class="flex justify-between items-center" style="flex-wrap:wrap;gap:.5rem;">
       <div>
         <span class="section-eyebrow">Browse by subject</span>
-        <h2 class="text-xl mt-1">Shop by Category</h2>
+        <h2 class="section-title mt-1">Shop by <em class="serif-accent">category</em></h2>
       </div>
       <?php if ($moreCategoriesCount > 0): ?>
         <a href="/browse.php" class="link">View all categories &rarr;</a>
@@ -117,13 +119,13 @@ $moreCategoriesCount = max(0, count($categories) - $categoryLimit);
   <div class="container">
     <div class="flex justify-between items-center">
       <div>
-        <span class="section-eyebrow">Fresh finds</span>
-        <h2 class="text-xl mt-1">Featured Classroom Listings</h2>
+        <span class="section-eyebrow">Just listed</span>
+        <h2 class="section-title mt-1">New in from <em class="serif-accent">other classrooms</em></h2>
       </div>
       <a href="/browse.php" class="link">View all &rarr;</a>
     </div>
     <?php if (!$listings): ?>
-      <p class="text-sm text-muted mt-4">No listings yet — be the first to post one.</p>
+      <p class="text-sm text-muted mt-4">Nothing listed yet. Got something sitting in a closet? <a class="link" href="/post-listing.php">List it here</a>.</p>
     <?php endif; ?>
     <div class="listing-grid mt-4">
       <?php foreach ($listings as $l): include __DIR__ . '/includes/partials/listing_card.php'; endforeach; ?>
@@ -134,7 +136,7 @@ $moreCategoriesCount = max(0, count($categories) - $categoryLimit);
 <section class="py-8 hidden" id="recently-viewed">
   <div class="container">
     <span class="section-eyebrow">Pick up where you left off</span>
-    <h2 class="text-xl mt-1">Recently Viewed</h2>
+    <h2 class="section-title mt-1">Recently viewed</h2>
     <div class="grid grid-4 mt-4" id="recently-viewed-list"></div>
   </div>
 </section>

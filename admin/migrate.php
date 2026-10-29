@@ -184,6 +184,73 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    // Site wording refresh: settings saved from Admin -> Branding override the defaults in
+    // includes/settings.php, so a site that saved them still shows the old wording. Swap in the
+    // new default only where the saved value is still the old default, exactly; anything an
+    // admin has customised is left alone.
+    $oldCopy = [
+        'homepage' => [
+            'badgeText' => 'Dedicated Exclusively to USA Teachers & Schools',
+            'heroHeadline' => 'Buy, Sell & Exchange Supplies with Fellow Educators',
+            'heroSubtext' => 'Stock classroom libraries, grab hands-on STEM kits, or pass along surplus furniture. Zero listing fees, verified educator trust, and contact-free school pickups.',
+            'trustHeadline' => 'The #1 Trusted Peer-to-Peer Marketplace for USA Educators',
+            'trustBadgeState' => 'NY & 50 STATES',
+            'trustDescription' => 'Rated 4.9 / 5.0 by over 12,450 in New York, Oklahoma, Texas, California, and nationwide. Every transaction is backed by our 100% Buyer Protection Guarantee and official tax-exempt school PO billing.',
+            'trustBadges' => [
+                ['icon' => 'star', 'tone' => 'amber', 'label' => '5-Star Trusted Educator Website'],
+                ['icon' => 'shield', 'tone' => 'emerald', 'label' => 'NYC DOE & NYSED Safe Harbor Verified'],
+                ['icon' => 'badge-check', 'tone' => 'royal', 'label' => 'BBB Accredited A+'],
+            ],
+        ],
+        'footer' => [
+            'description' => 'The premier USA peer-to-peer marketplace empowering educators to circulate classroom supplies, books, furniture, and STEM learning kits affordably.',
+            'features' => [
+                ['icon' => 'shield', 'color' => 'var(--royal-600)', 'title' => 'Verified Teachers Only', 'desc' => 'Every educator credential is authenticated to ensure trusted, safe classroom exchanges.'],
+                ['icon' => 'book', 'color' => 'var(--emerald-600)', 'title' => 'Zero Upfront Listing Fees', 'desc' => 'List unlimited books, furniture, and STEM sets for free. Only a low platform fee when items sell.'],
+                ['icon' => 'map-pin', 'color' => 'var(--amber-600)', 'title' => 'Safe School Office Pickups', 'desc' => 'Save on freight costs with secure contact-free swaps at local district offices or campuses.'],
+                ['icon' => 'lock', 'color' => 'var(--violet-600)', 'title' => 'Tax-Exempt Ready Invoices', 'desc' => 'Official receipts and school district purchase order (PO) workflows, ready to print.'],
+            ],
+            'trustLinks' => [
+                ['label' => 'Trust & Safety Center', 'href' => '/how-it-works.php'],
+                ['label' => 'Dispute Resolution Portal', 'href' => '/disputes.php'],
+                ['label' => 'Frequently Asked Questions', 'href' => '/how-it-works.php'],
+                ['label' => 'Terms of Service', 'href' => '/terms.php'],
+                ['label' => 'Privacy & FERPA Protection', 'href' => '/privacy.php'],
+            ],
+        ],
+        'seasonal_hub' => [
+            'freeSurplusBannerText' => 'Free Surplus / $0 Donations Only',
+        ],
+    ];
+    $newDefaults = default_settings();
+    foreach ($oldCopy as $settingKey => $fields) {
+        $stmt = db()->prepare('SELECT value_json FROM site_settings WHERE setting_key = ?');
+        $stmt->execute([$settingKey]);
+        $raw = $stmt->fetchColumn();
+        if ($raw === false) {
+            continue; // never saved, so the new defaults already show
+        }
+        $stored = json_decode($raw, true) ?: [];
+        $changed = [];
+        foreach ($fields as $field => $oldValue) {
+            if (array_key_exists($field, $stored) && $stored[$field] == $oldValue) {
+                $stored[$field] = $newDefaults[$settingKey][$field];
+                $changed[] = $field;
+            }
+        }
+        if ($settingKey === 'footer') {
+            foreach (['address', 'phone'] as $removed) {
+                if (array_key_exists($removed, $stored)) {
+                    unset($stored[$removed]);
+                    $changed[] = $removed . ' (removed)';
+                }
+            }
+        }
+        if ($changed) {
+            $log[] = run_step("Updated $settingKey wording: " . implode(', ', $changed), fn() => set_setting($settingKey, $stored));
+        }
+    }
+
     if (!$log) {
         $log[] = 'Database already up to date — nothing to change.';
     }
